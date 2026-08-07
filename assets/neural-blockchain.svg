@@ -1,0 +1,208 @@
+<svg width="900" height="220" viewBox="0 0 900 220" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="bg" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#0d1b2a"/>
+      <stop offset="100%" style="stop-color:#050d1a"/>
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="glow2">
+      <feGaussianBlur stdDeviation="5" result="coloredBlur"/>
+      <feMerge><feMergeNode in="coloredBlur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <linearGradient id="flowGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#1e90ff;stop-opacity:0"/>
+      <stop offset="50%" style="stop-color:#00d4ff;stop-opacity:1"/>
+      <stop offset="100%" style="stop-color:#a855f7;stop-opacity:0"/>
+    </linearGradient>
+    <linearGradient id="chainGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#f9ab00"/>
+      <stop offset="100%" style="stop-color:#f97316"/>
+    </linearGradient>
+    <marker id="arrow" viewBox="0 0 10 10" refX="5" refY="5" markerWidth="4" markerHeight="4" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#00d4ff" opacity="0.7"/>
+    </marker>
+  </defs>
+
+  <!-- Background -->
+  <rect width="900" height="220" fill="url(#bg)" rx="12"/>
+  <rect width="900" height="220" fill="none" stroke="#1e3a5f" stroke-width="1.5" rx="12" opacity="0.6"/>
+
+  <!-- Grid dots -->
+  <g opacity="0.08" fill="#6ec6ff">
+    <circle cx="50" cy="50" r="1.5"/><circle cx="100" cy="50" r="1.5"/><circle cx="150" cy="50" r="1.5"/><circle cx="200" cy="50" r="1.5"/>
+    <circle cx="50" cy="100" r="1.5"/><circle cx="100" cy="100" r="1.5"/><circle cx="150" cy="100" r="1.5"/><circle cx="200" cy="100" r="1.5"/>
+    <circle cx="50" cy="150" r="1.5"/><circle cx="100" cy="150" r="1.5"/><circle cx="150" cy="150" r="1.5"/><circle cx="200" cy="150" r="1.5"/>
+    <circle cx="700" cy="50" r="1.5"/><circle cx="750" cy="50" r="1.5"/><circle cx="800" cy="50" r="1.5"/><circle cx="850" cy="50" r="1.5"/>
+    <circle cx="700" cy="100" r="1.5"/><circle cx="750" cy="100" r="1.5"/><circle cx="800" cy="100" r="1.5"/><circle cx="850" cy="100" r="1.5"/>
+    <circle cx="700" cy="150" r="1.5"/><circle cx="750" cy="150" r="1.5"/><circle cx="800" cy="150" r="1.5"/><circle cx="850" cy="150" r="1.5"/>
+  </g>
+
+  <!-- === LEFT: NEURAL NETWORK NODES === -->
+  <!-- Layer 1 - Input -->
+  <g filter="url(#glow)">
+    <circle cx="80" cy="70" r="12" fill="none" stroke="#1e90ff" stroke-width="1.5"/>
+    <circle cx="80" cy="70" r="6" fill="#1e90ff" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="80" cy="120" r="12" fill="none" stroke="#1e90ff" stroke-width="1.5"/>
+    <circle cx="80" cy="120" r="6" fill="#1e90ff" opacity="0.9">
+      <animate attributeName="opacity" values="0.4;0.9;0.4" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="80" cy="170" r="12" fill="none" stroke="#1e90ff" stroke-width="1.5"/>
+    <circle cx="80" cy="170" r="6" fill="#1e90ff" opacity="0.9">
+      <animate attributeName="opacity" values="0.9;0.4;0.9" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Layer 2 - Hidden -->
+  <g filter="url(#glow)">
+    <circle cx="165" cy="55" r="12" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <circle cx="165" cy="55" r="6" fill="#00d4ff" opacity="0.9">
+      <animate attributeName="opacity" values="0.5;1;0.5" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="165" cy="110" r="12" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <circle cx="165" cy="110" r="6" fill="#00d4ff" opacity="0.9">
+      <animate attributeName="opacity" values="1;0.5;1" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="165" cy="165" r="12" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <circle cx="165" cy="165" r="6" fill="#00d4ff" opacity="0.9">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.6s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Layer 3 - Output node -->
+  <g filter="url(#glow2)">
+    <circle cx="250" cy="110" r="16" fill="none" stroke="#a855f7" stroke-width="2"/>
+    <circle cx="250" cy="110" r="8" fill="#a855f7">
+      <animate attributeName="r" values="8;10;8" dur="2s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0.6;1" dur="2s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+
+  <!-- Neural connections Layer1→2 -->
+  <g stroke="#1e90ff" stroke-width="0.6" opacity="0.4">
+    <line x1="92" y1="70" x2="153" y2="55"/><line x1="92" y1="70" x2="153" y2="110"/><line x1="92" y1="70" x2="153" y2="165"/>
+    <line x1="92" y1="120" x2="153" y2="55"/><line x1="92" y1="120" x2="153" y2="110"/><line x1="92" y1="120" x2="153" y2="165"/>
+    <line x1="92" y1="170" x2="153" y2="55"/><line x1="92" y1="170" x2="153" y2="110"/><line x1="92" y1="170" x2="153" y2="165"/>
+  </g>
+
+  <!-- Neural connections Layer2→3 -->
+  <g stroke="#a855f7" stroke-width="0.8" opacity="0.4">
+    <line x1="177" y1="55" x2="234" y2="110"/>
+    <line x1="177" y1="110" x2="234" y2="110"/>
+    <line x1="177" y1="165" x2="234" y2="110"/>
+  </g>
+
+  <!-- Animated signal pulses on neural connections -->
+  <circle r="3" fill="#00d4ff" filter="url(#glow)" opacity="0.9">
+    <animateMotion dur="1.5s" repeatCount="indefinite" path="M 92,70 L 153,55"/>
+  </circle>
+  <circle r="3" fill="#00d4ff" filter="url(#glow)" opacity="0.9">
+    <animateMotion dur="1.5s" repeatCount="indefinite" begin="0.5s" path="M 92,120 L 153,110"/>
+  </circle>
+  <circle r="3" fill="#00d4ff" filter="url(#glow)" opacity="0.9">
+    <animateMotion dur="1.5s" repeatCount="indefinite" begin="1s" path="M 92,170 L 153,165"/>
+  </circle>
+  <circle r="3.5" fill="#a855f7" filter="url(#glow)" opacity="0.9">
+    <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.3s" path="M 177,55 L 234,110"/>
+  </circle>
+  <circle r="3.5" fill="#a855f7" filter="url(#glow)" opacity="0.9">
+    <animateMotion dur="1.2s" repeatCount="indefinite" begin="0.9s" path="M 177,165 L 234,110"/>
+  </circle>
+
+  <!-- Label -->
+  <text x="80" y="205" text-anchor="middle" fill="#1e90ff" font-size="9" font-family="monospace" opacity="0.7">AI MODEL</text>
+  <text x="165" y="205" text-anchor="middle" fill="#00d4ff" font-size="9" font-family="monospace" opacity="0.7">COGNITION</text>
+
+  <!-- === CENTRE: DATA FLOW + ENCRYPTION CORE === -->
+  <!-- Flow pipe -->
+  <rect x="270" y="104" width="360" height="12" rx="6" fill="#0d2540" stroke="#1e3a5f" stroke-width="1"/>
+
+  <!-- Animated data packets flowing left to right -->
+  <rect width="28" height="10" rx="5" fill="url(#flowGrad)" filter="url(#glow)">
+    <animateMotion dur="2.5s" repeatCount="indefinite" path="M 272,108 L 625,108"/>
+  </rect>
+  <rect width="20" height="10" rx="5" fill="url(#flowGrad)" filter="url(#glow)">
+    <animateMotion dur="2.5s" repeatCount="indefinite" begin="0.8s" path="M 272,108 L 625,108"/>
+  </rect>
+  <rect width="14" height="10" rx="5" fill="url(#flowGrad)" filter="url(#glow)">
+    <animateMotion dur="2.5s" repeatCount="indefinite" begin="1.6s" path="M 272,108 L 625,108"/>
+  </rect>
+
+  <!-- Encryption lock icon in centre -->
+  <g transform="translate(420, 75)" filter="url(#glow2)">
+    <rect x="-22" y="-22" width="44" height="44" rx="22" fill="#0d1b2a" stroke="#00d4ff" stroke-width="1.5" opacity="0.9"/>
+    <rect x="-10" y="-2" width="20" height="14" rx="3" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <path d="M -6,-2 L -6,-10 C -6,-16 6,-16 6,-10 L 6,-2" fill="none" stroke="#00d4ff" stroke-width="1.5"/>
+    <circle cx="0" cy="5" r="2.5" fill="#00d4ff"/>
+    <text x="0" y="28" text-anchor="middle" fill="#00d4ff" font-size="8" font-family="monospace">AES-256</text>
+    <animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- IPFS node above pipe -->
+  <g transform="translate(450, 145)">
+    <polygon points="0,-18 15.6,9 -15.6,9" fill="none" stroke="#65c2cb" stroke-width="1.5" filter="url(#glow)"/>
+    <polygon points="0,18 15.6,-9 -15.6,-9" fill="none" stroke="#65c2cb" stroke-width="1.5" filter="url(#glow)"/>
+    <text x="0" y="30" text-anchor="middle" fill="#65c2cb" font-size="8" font-family="monospace">IPFS</text>
+  </g>
+
+  <!-- Labels -->
+  <text x="450" y="205" text-anchor="middle" fill="#6ec6ff" font-size="9" font-family="monospace" opacity="0.7">ENCRYPTED COGNITIVE STREAM</text>
+
+  <!-- === RIGHT: BLOCKCHAIN === -->
+  <!-- Block 1 -->
+  <g transform="translate(645, 60)" filter="url(#glow)">
+    <rect x="-28" y="-22" width="56" height="44" rx="6" fill="#1a1000" stroke="#f9ab00" stroke-width="1.5"/>
+    <text x="0" y="-6" text-anchor="middle" fill="#f9ab00" font-size="7" font-family="monospace">#0x1F2A</text>
+    <text x="0" y="6" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">MiniLM</text>
+    <text x="0" y="17" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">384d</text>
+    <animate attributeName="opacity" values="1;0.7;1" dur="3s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- Block 2 -->
+  <g transform="translate(730, 110)" filter="url(#glow)">
+    <rect x="-28" y="-22" width="56" height="44" rx="6" fill="#1a1000" stroke="#f9ab00" stroke-width="1.5"/>
+    <text x="0" y="-6" text-anchor="middle" fill="#f9ab00" font-size="7" font-family="monospace">#0x3D8C</text>
+    <text x="0" y="6" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">RoBERTa</text>
+    <text x="0" y="17" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">768d</text>
+    <animate attributeName="opacity" values="0.7;1;0.7" dur="3.5s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- Block 3 -->
+  <g transform="translate(645, 160)" filter="url(#glow)">
+    <rect x="-28" y="-22" width="56" height="44" rx="6" fill="#1a1000" stroke="#f9ab00" stroke-width="1.5"/>
+    <text x="0" y="-6" text-anchor="middle" fill="#f9ab00" font-size="7" font-family="monospace">#0x9F1E</text>
+    <text x="0" y="6" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">Sepolia</text>
+    <text x="0" y="17" text-anchor="middle" fill="#f97316" font-size="6" font-family="monospace">TX✓</text>
+    <animate attributeName="opacity" values="1;0.6;1" dur="2.8s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- Chain links between blocks -->
+  <g stroke="#f9ab00" stroke-width="1.5" stroke-dasharray="4,3" opacity="0.6">
+    <line x1="645" y1="82" x2="702" y2="104"/>
+    <line x1="758" y1="112" x2="700" y2="138"/>
+    <line x1="645" y1="138" x2="645" y2="88"/>
+  </g>
+
+  <!-- Blockchain label -->
+  <text x="720" y="205" text-anchor="middle" fill="#f9ab00" font-size="9" font-family="monospace" opacity="0.7">BLOCKCHAIN LEDGER</text>
+
+  <!-- === REPUTATION SCORE PANEL (far right) === -->
+  <g transform="translate(830, 80)">
+    <rect x="-30" y="-30" width="60" height="100" rx="8" fill="#0d1b2a" stroke="#00ff88" stroke-width="1" opacity="0.9"/>
+    <text x="0" y="-14" text-anchor="middle" fill="#00ff88" font-size="7" font-family="monospace">TRUST</text>
+    <text x="0" y="-2" text-anchor="middle" fill="#00ff88" font-size="7" font-family="monospace">SCORE</text>
+    <text x="0" y="16" text-anchor="middle" fill="#00ff88" font-size="18" font-family="monospace" font-weight="bold">✓</text>
+    <text x="0" y="35" text-anchor="middle" fill="#00ff88" font-size="8" font-family="monospace">9.2/10</text>
+    <text x="0" y="55" text-anchor="middle" fill="#00ff88" font-size="7" font-family="monospace">BAYESIAN</text>
+    <animate attributeName="opacity" values="1;0.7;1" dur="2s" repeatCount="indefinite"/>
+  </g>
+
+  <!-- Title top centre -->
+  <text x="450" y="30" text-anchor="middle" fill="#6ec6ff" font-size="13" font-family="monospace" font-weight="bold" letter-spacing="4" opacity="0.9">NEUROMESH COGNITIVE PROTOCOL</text>
+  <text x="450" y="46" text-anchor="middle" fill="#4a8ab5" font-size="9" font-family="monospace" letter-spacing="2">AI SWARM  ⟶  ENCRYPTED MEMORY  ⟶  BLOCKCHAIN LEDGER</text>
+
+</svg>
