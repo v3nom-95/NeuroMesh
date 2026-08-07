@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroMesh | Decentralized AI Memory</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="background-orb orb-1"></div>
+    <div class="background-orb orb-2"></div>
+    <div class="background-orb orb-3"></div>
+
+    <div class="container">
+        <header>
+            <h1>Neuro<span>Mesh</span></h1>
+            <p>Decentralized Cognitive Memory Protocol for AI Agents</p>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('node-view')">Single Agent Node</button>
+            <button class="tab-btn" onclick="switchTab('network-view')">Swarm Network Analytics</button>
+        </div>
+
+        <main id="node-view" class="view-section active">
+            <div class="glass-panel agent-panel">
+                <h2>1. Active AI Agent</h2>
+                <div class="agent-info">
+                    <div class="avatar" id="agent-avatar">🤖</div>
+                    <div>
+                        <p class="label">Decentralized Identifier (Wallet):</p>
+                        <p class="value address" id="agent-address">Loading in-memory chain...</p>
+                        <p class="label">Reputation Score:</p>
+                        <p class="value" id="agent-reputation">0 (Neutral)</p>
+                    </div>
+                </div>
+                <button id="register-btn" class="glow-btn">Register Agent on Blockchain</button>
+            </div>
+
+            <div class="glass-panel memory-panel">
+                <h2>2. Synchronize Contextual Memory</h2>
+                <textarea id="memory-input" placeholder="Enter contextual knowledge for the AI agent to remember (e.g. 'The user prefers dark mode in all UI elements.')..."></textarea>
+                <button id="commit-btn" class="glow-btn secondary">Generate Embeddings & Commit to NeuroMesh</button>
+                <div id="loader" class="hidden">
+                    <div class="spinner"></div>
+                    <p id="loader-text">Generating vector embeddings...</p>
+                </div>
+            </div>
+
+            <div class="glass-panel ledger-panel">
+                <h2>3. Global Memory Ledger</h2>
+                <p class="label" style="margin-bottom: 1rem;">Verified memory shards fetched from IPFS & Blockchain.</p>
+                <div id="memory-list" class="memory-list">
+                    <!-- Memories injected here via JS -->
+                </div>
+            </div>
+        </main>
+
+        <main id="network-view" class="view-section hidden">
+            <div class="glass-panel analytics-panel">
+                <h2>🌐 Multi-Agent Swarm Overview</h2>
+                <div id="agents-grid" class="agents-grid">
+                    <!-- Agents populated here -->
+                </div>
+            </div>
+
+            <div class="glass-panel analytics-panel">
+                <h2>⚡ Performance Benchmarks (Averages)</h2>
+                <div class="stats-grid">
+                    <div class="stat-card"><p>Embedding Gen</p><h3 id="stat-emb">-- ms</h3></div>
+                    <div class="stat-card"><p>AES-256 Encrypt</p><h3 id="stat-enc">-- ms</h3></div>
+                    <div class="stat-card"><p>IPFS Upload</p><h3 id="stat-ipfs">-- ms</h3></div>
+                    <div class="stat-card"><p>Blockchain Tx</p><h3 id="stat-bc">-- ms</h3></div>
+                </div>
+            </div>
+
+            <div class="glass-panel analytics-panel">
+                <h2>🤝 Cross-Model Semantic Synchronization</h2>
+                <p class="label">Cosine similarity across heterogeneous models (384d & 768d aligned)</p>
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead><tr><th>From Agent</th><th>To Agent</th><th>From Model</th><th>To Model</th><th>Similarity</th></tr></thead>
+                        <tbody id="similarity-tbody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="glass-panel analytics-panel">
+                <h2>⚖️ Bayesian Trust & Reputation</h2>
+                <div class="reputation-container">
+                    <div class="rep-events">
+                        <h3>Recent Trust Interactions</h3>
+                        <ul id="rep-events-list"></ul>
+                    </div>
+                    <div class="rep-scores">
+                        <h3>Global Reputation Scores</h3>
+                        <ul id="rep-scores-list"></ul>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="app.js"></script>
+</body>
+</html>
