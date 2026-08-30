@@ -1,0 +1,45 @@
+# CODEOWNERS - review routing for NeuroMesh Protocol.
+#
+# Syntax note: the LAST matching pattern wins, so the catch-all comes first
+# and the more specific security-sensitive paths come after it.
+#
+# This file only has teeth once branch protection on `main` enables
+# "Require a pull request before merging" + "Require review from Code Owners".
+# Until then GitHub will request review but not block a merge. See CONTRIBUTING.md.
+
+# Default owner for everything in the repository.
+*                               @v3nom-95
+
+# ---------------------------------------------------------------------------
+# Protocol layer - changes here move real value on a public chain.
+# ---------------------------------------------------------------------------
+/contracts/                     @v3nom-95
+/src/protocol/                  @v3nom-95
+/protocol/                      @v3nom-95
+/test/contracts/                @v3nom-95
+/test/protocol/                 @v3nom-95
+/scripts/deploy.js              @v3nom-95
+/scripts/verify.js              @v3nom-95
+/deployments/                   @v3nom-95
+/contract-addresses.json        @v3nom-95
+/hardhat.config.js              @v3nom-95
+
+# ---------------------------------------------------------------------------
+# Security-sensitive infrastructure - a bad change here leaks credentials or
+# silently disables a gate.
+# ---------------------------------------------------------------------------
+/.github/                       @v3nom-95
+/.github/workflows/             @v3nom-95
+/.github/dependabot.yml         @v3nom-95
+/.github/gitleaks.toml          @v3nom-95
+/Dockerfile                     @v3nom-95
+/.dockerignore                  @v3nom-95
+/docker-compose.yml             @v3nom-95
+/.gitignore                     @v3nom-95
+/.npmrc                         @v3nom-95
+/.env.example                   @v3nom-95
+/package.json                   @v3nom-95
+/package-lock.json              @v3nom-95
+/SECURITY.md                    @v3nom-95
+/LICENSE                        @v3nom-95
+/NOTICE                         @v3nom-95

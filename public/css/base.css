@@ -1,0 +1,506 @@
+/**
+ * NeuroMesh — Layer 1: reset, element defaults, typography, focus, utilities,
+ * and the accessibility preference blocks.
+ *
+ * Depends on: css/tokens.css (must be linked first).
+ * Contains no component styling and no raw colours.
+ */
+
+/* ==================================================================== *
+ * Reset
+ * ==================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd,
+pre {
+  margin: 0;
+}
+
+ul,
+ol {
+  margin: 0;
+}
+
+/* Only lists that are explicitly styled lose their markers; a bare <ul> in
+   prose keeps its semantics and its bullets. */
+ul[class],
+ol[class] {
+  list-style: none;
+  padding: 0;
+}
+
+img,
+svg,
+video,
+canvas,
+picture {
+  display: block;
+  max-width: 100%;
+}
+
+img,
+video {
+  height: auto;
+}
+
+input,
+button,
+textarea,
+select {
+  font: inherit;
+  color: inherit;
+  margin: 0;
+}
+
+button {
+  background: none;
+  border: 0;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+
+textarea {
+  resize: vertical;
+}
+
+table {
+  border-collapse: collapse;
+  width: 100%;
+}
+
+th {
+  text-align: start;
+}
+
+fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+
+legend {
+  padding: 0;
+}
+
+hr {
+  border: 0;
+  border-block-start: var(--hairline) solid var(--border-subtle);
+  margin-block: var(--sp-6);
+}
+
+summary {
+  cursor: pointer;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ==================================================================== *
+ * Document
+ * ==================================================================== */
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* Sticky topbar must not cover an in-page anchor target. */
+  scroll-padding-block-start: calc(var(--topbar-h) + var(--sp-4));
+  block-size: 100%;
+}
+
+body {
+  margin: 0;
+  min-block-size: 100dvh;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+  font-weight: var(--fw-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+/**
+ * Ambient brand wash. One fixed, static, composited layer — deliberately NOT
+ * the three animated `blur(120px)` orbs the previous stylesheet used, which
+ * forced the compositor to re-rasterise three very large blurred layers for the
+ * life of the page. There is no filter and no animation here, so this costs one
+ * paint and nothing else.
+ */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    radial-gradient(
+      60rem 40rem at 12% -10%,
+      color-mix(in oklab, var(--brand-bg) 18%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      50rem 36rem at 105% 110%,
+      color-mix(in oklab, var(--accent-bg) 14%, transparent),
+      transparent 70%
+    );
+  opacity: 0.7;
+}
+
+/* Decoration is the first thing to go when the user asks for clarity. */
+@media (prefers-contrast: more) {
+  body::before {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  body::before {
+    opacity: 0;
+  }
+}
+
+/* ==================================================================== *
+ * Typography
+ * ==================================================================== */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-weight: var(--fw-semibold);
+  text-wrap: balance;
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: var(--fs-2xl);
+}
+
+h2 {
+  font-size: var(--fs-xl);
+}
+
+h3 {
+  font-size: var(--fs-lg);
+}
+
+h4 {
+  font-size: var(--fs-md);
+}
+
+h5,
+h6 {
+  font-size: var(--fs-sm);
+  letter-spacing: var(--ls-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+p {
+  text-wrap: pretty;
+  max-inline-size: 72ch;
+}
+
+small {
+  font-size: var(--fs-xs);
+}
+
+strong,
+b {
+  font-weight: var(--fw-semibold);
+}
+
+code,
+kbd,
+samp,
+pre {
+  font-family: var(--font-mono);
+  font-size: 0.95em;
+}
+
+kbd {
+  display: inline-block;
+  padding: 0 var(--sp-1);
+  border: var(--hairline) solid var(--border-default);
+  border-block-end-width: 2px;
+  border-radius: var(--r-xs);
+  background-color: var(--bg-inset);
+  font-size: var(--fs-2xs);
+  line-height: 1.6;
+}
+
+pre {
+  overflow-x: auto;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--r-md);
+  background-color: var(--bg-inset);
+  border: var(--hairline) solid var(--border-subtle);
+}
+
+a {
+  color: var(--brand-fg);
+  text-underline-offset: 0.18em;
+  text-decoration-thickness: from-font;
+}
+
+a:hover {
+  text-decoration-thickness: 2px;
+}
+
+::placeholder {
+  color: var(--text-muted);
+  opacity: 1;
+}
+
+::selection {
+  background-color: color-mix(in oklab, var(--brand-bg) 35%, transparent);
+  color: var(--text-primary);
+}
+
+/* ==================================================================== *
+ * Focus
+ *
+ * The ring is defined once, here, and is never removed anywhere else in
+ * the codebase. `:focus { outline: none }` only suppresses the ring for
+ * pointer interaction; `:focus-visible` immediately restores it for
+ * keyboard users. Any rule that sets `outline: none` without a
+ * `:focus-visible` counterpart is a bug.
+ * ==================================================================== */
+
+:focus {
+  outline: none;
+}
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--r-xs);
+}
+
+/* Programmatic focus on a region (router moves focus to the active panel).
+   Those containers use tabindex="-1" and get no `:focus-visible` from the UA,
+   so the ring is applied through this class instead. */
+.js-focus-ring-force {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--r-sm);
+}
+
+/* ==================================================================== *
+ * Utilities
+ * ==================================================================== */
+
+.sr-only {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Visible again on keyboard focus — used by the skip link only. */
+.sr-only-focusable:focus-visible {
+  position: static;
+  inline-size: auto;
+  block-size: auto;
+  margin: 0;
+  overflow: visible;
+  clip-path: none;
+  white-space: normal;
+}
+
+.skip-link {
+  position: absolute;
+  inset-block-start: var(--sp-2);
+  inset-inline-start: var(--sp-2);
+  z-index: var(--z-toast);
+  padding: var(--sp-2) var(--sp-4);
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-md);
+  background-color: var(--bg-elevated);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-2);
+  font-weight: var(--fw-medium);
+  text-decoration: none;
+  /* Parked off-canvas rather than display:none so it stays focusable. */
+  transform: translateY(calc(-100% - var(--sp-4)));
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.skip-link:focus-visible {
+  transform: translateY(0);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.95em;
+}
+
+.num {
+  font-variant-numeric: tabular-nums;
+}
+
+.truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-inline-size: 0;
+}
+
+.break-all {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.stack > * + * {
+  margin-block-start: var(--sp-4);
+}
+
+/* Accessible data equivalent for an inline SVG chart: present to assistive
+   technology, invisible on screen. Uses the same clip pattern as .sr-only. */
+.visually-hidden-table {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.no-wrap {
+  white-space: nowrap;
+}
+
+/* ==================================================================== *
+ * Scrollbars
+ * ==================================================================== */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+}
+
+*::-webkit-scrollbar {
+  inline-size: 10px;
+  block-size: 10px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--border-default);
+  border-radius: var(--r-full);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background-color: var(--border-strong);
+}
+
+/* ==================================================================== *
+ * Reduced motion — WCAG 2.2 SC 2.3.3 / 2.2.2.
+ *
+ * Global, unconditional, and last-word. Every animation and transition in
+ * every later layer is neutralised here; individual components do not opt
+ * in, they opt out by being covered.
+ * ==================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .skeleton {
+    animation: none !important;
+    background-image: none;
+    background-color: var(--bg-inset);
+  }
+
+  .spinner {
+    animation: none !important;
+  }
+}
+
+/* ==================================================================== *
+ * Forced colours (Windows High Contrast)
+ * ==================================================================== */
+
+@media (forced-colors: active) {
+  .btn,
+  .card,
+  .pill,
+  .tab,
+  .panel,
+  .callout {
+    border: 1px solid CanvasText;
+  }
+
+  /* Charts encode meaning in fill; let them keep their own colours and rely
+     on the pattern/label fallbacks charts.js emits. */
+  .chart svg * {
+    forced-color-adjust: none;
+  }
+
+  :focus-visible,
+  .js-focus-ring-force {
+    outline-color: Highlight;
+  }
+
+  body::before {
+    display: none;
+  }
+}

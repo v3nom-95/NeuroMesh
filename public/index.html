@@ -1,106 +1,440 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NeuroMesh | Decentralized AI Memory</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap" rel="stylesheet">
-</head>
-<body>
-    <div class="background-orb orb-1"></div>
-    <div class="background-orb orb-2"></div>
-    <div class="background-orb orb-3"></div>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>NeuroMesh — Node Console</title>
+    <meta
+      name="description"
+      content="Operator console for a NeuroMesh decentralized cognitive-memory node: identity, memory ledger, cross-model semantics, reputation, and system health."
+    />
+    <meta name="color-scheme" content="light dark" />
 
-    <div class="container">
-        <header>
-            <h1>Neuro<span>Mesh</span></h1>
-            <p>Decentralized Cognitive Memory Protocol for AI Agents</p>
-        </header>
+    <!--
+      Two media-scoped theme-color tags so an unscripted page still gets the
+      right browser chrome. A browser uses the FIRST tag whose media query
+      matches; js/theme.js writes the resolved colour into BOTH when the user
+      picks an explicit theme, and restores these per-scheme values for
+      "system". Keep the values in step with --bg-canvas in css/tokens.css.
+    -->
+    <meta
+      id="meta-theme-color-light"
+      name="theme-color"
+      content="#f4f6fb"
+      media="(prefers-color-scheme: light)"
+    />
+    <meta
+      id="meta-theme-color-dark"
+      name="theme-color"
+      content="#050a14"
+      media="(prefers-color-scheme: dark)"
+    />
 
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('node-view')">Single Agent Node</button>
-            <button class="tab-btn" onclick="switchTab('network-view')">Swarm Network Analytics</button>
+    <link rel="icon" href="/icons/favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/icons/favicon.svg" />
+    <link rel="manifest" href="/site.webmanifest" />
+
+    <!--
+      Load order is the cascade contract:
+        tokens     -> custom properties only, no selectors that paint
+        base       -> reset, typography, focus, a11y preference blocks
+        layout     -> app shell, grids, responsive collapse
+        components -> UI primitives
+        charts     -> inline-SVG chart classes
+      No external origin is referenced anywhere in this document: no CDN, no
+      web font, no analytics. The console works air-gapped.
+    -->
+    <link rel="stylesheet" href="/css/tokens.css" />
+    <link rel="stylesheet" href="/css/base.css" />
+    <link rel="stylesheet" href="/css/layout.css" />
+    <link rel="stylesheet" href="/css/components.css" />
+    <link rel="stylesheet" href="/css/charts.css" />
+
+    <!-- Modules defer by default, so this runs after parsing with no `defer`. -->
+    <script type="module" src="/js/main.js"></script>
+  </head>
+
+  <body>
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <div id="app" class="app-shell">
+      <header class="topbar" role="banner">
+        <div class="topbar__brand">
+          <svg
+            class="brand-mark"
+            viewBox="0 0 32 32"
+            width="26"
+            height="26"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              class="brand-mark__link"
+              d="M16 8 8 23M16 8l8 15M8 23h16M16 8v9M8 23l8-6M24 23l-8-6"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            />
+            <circle class="brand-mark__node" cx="16" cy="8" r="2.8" fill="currentColor" />
+            <circle class="brand-mark__node" cx="8" cy="23" r="2.8" fill="currentColor" />
+            <circle class="brand-mark__node" cx="24" cy="23" r="2.8" fill="currentColor" />
+            <circle class="brand-mark__core" cx="16" cy="17" r="3.4" fill="currentColor" />
+          </svg>
+          <span class="topbar__wordmark">Neuro<b>Mesh</b></span>
         </div>
 
-        <main id="node-view" class="view-section active">
-            <div class="glass-panel agent-panel">
-                <h2>1. Active AI Agent</h2>
-                <div class="agent-info">
-                    <div class="avatar" id="agent-avatar">🤖</div>
-                    <div>
-                        <p class="label">Decentralized Identifier (Wallet):</p>
-                        <p class="value address" id="agent-address">Loading in-memory chain...</p>
-                        <p class="label">Reputation Score:</p>
-                        <p class="value" id="agent-reputation">0 (Neutral)</p>
-                    </div>
-                </div>
-                <button id="register-btn" class="glow-btn">Register Agent on Blockchain</button>
-            </div>
+        <!--
+          Three readiness pills. Static text is the honest pre-JS state; main.js
+          replaces the contents once /api/status and /readyz have answered.
+        -->
+        <div class="topbar__status" id="global-status">
+          <span class="pill pill--neutral" id="pill-chain">
+            <span class="pill__dot" aria-hidden="true"></span>
+            <span class="pill__label">Chain: checking</span>
+          </span>
+          <span class="pill pill--neutral" id="pill-model">
+            <span class="pill__dot" aria-hidden="true"></span>
+            <span class="pill__label">Model: checking</span>
+          </span>
+          <span class="pill pill--neutral" id="pill-ipfs">
+            <span class="pill__dot" aria-hidden="true"></span>
+            <span class="pill__label">IPFS: checking</span>
+          </span>
+        </div>
 
-            <div class="glass-panel memory-panel">
-                <h2>2. Synchronize Contextual Memory</h2>
-                <textarea id="memory-input" placeholder="Enter contextual knowledge for the AI agent to remember (e.g. 'The user prefers dark mode in all UI elements.')..."></textarea>
-                <button id="commit-btn" class="glow-btn secondary">Generate Embeddings & Commit to NeuroMesh</button>
-                <div id="loader" class="hidden">
-                    <div class="spinner"></div>
-                    <p id="loader-text">Generating vector embeddings...</p>
-                </div>
-            </div>
+        <div class="topbar__actions">
+          <button
+            id="btn-refresh"
+            class="btn btn--ghost btn--icon"
+            type="button"
+            aria-label="Refresh all data"
+            aria-keyshortcuts="r"
+            title="Refresh all data (press r)"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M20 11a8 8 0 1 0-.7 4.3" />
+              <path d="M20 4v7h-7" />
+            </svg>
+          </button>
 
-            <div class="glass-panel ledger-panel">
-                <h2>3. Global Memory Ledger</h2>
-                <p class="label" style="margin-bottom: 1rem;">Verified memory shards fetched from IPFS & Blockchain.</p>
-                <div id="memory-list" class="memory-list">
-                    <!-- Memories injected here via JS -->
-                </div>
-            </div>
-        </main>
+          <!-- Icon and aria-label are written by js/theme.js on boot. -->
+          <button
+            id="btn-theme"
+            class="btn btn--ghost btn--icon"
+            type="button"
+            aria-label="Theme: system"
+            aria-keyshortcuts="t"
+          ></button>
 
-        <main id="network-view" class="view-section hidden">
-            <div class="glass-panel analytics-panel">
-                <h2>🌐 Multi-Agent Swarm Overview</h2>
-                <div id="agents-grid" class="agents-grid">
-                    <!-- Agents populated here -->
-                </div>
-            </div>
+          <button
+            id="btn-settings"
+            class="btn btn--ghost btn--icon"
+            type="button"
+            aria-label="Settings"
+            aria-haspopup="dialog"
+            title="Settings"
+          >
+            <svg
+              class="icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="12" r="3" />
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1Z"
+              />
+            </svg>
+          </button>
+        </div>
+      </header>
 
-            <div class="glass-panel analytics-panel">
-                <h2>⚡ Performance Benchmarks (Averages)</h2>
-                <div class="stats-grid">
-                    <div class="stat-card"><p>Embedding Gen</p><h3 id="stat-emb">-- ms</h3></div>
-                    <div class="stat-card"><p>AES-256 Encrypt</p><h3 id="stat-enc">-- ms</h3></div>
-                    <div class="stat-card"><p>IPFS Upload</p><h3 id="stat-ipfs">-- ms</h3></div>
-                    <div class="stat-card"><p>Blockchain Tx</p><h3 id="stat-bc">-- ms</h3></div>
-                </div>
-            </div>
+      <!--
+        Primary navigation. This is a real ARIA tablist: js/router.js owns the
+        roving tabindex (ArrowLeft/ArrowRight/Home/End), flips aria-selected,
+        toggles the `hidden` attribute on the panels, and moves focus to the
+        newly revealed panel. Below 60rem, css/layout.css turns this rail into a
+        fixed bottom tab bar — it stays permanently visible at every width, so
+        there is no disclosure button to get out of sync.
+      -->
+      <nav id="nav" class="sidebar" aria-label="Primary">
+        <div
+          id="view-tabs"
+          class="tablist"
+          role="tablist"
+          aria-label="Console sections"
+          aria-orientation="vertical"
+        >
+          <button
+            class="tab"
+            role="tab"
+            type="button"
+            data-view="overview"
+            id="tab-overview"
+            aria-controls="panel-overview"
+            aria-selected="true"
+            tabindex="0"
+          >
+            <svg
+              class="tab__icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M4 4h6v6H4zM14 4h6v4h-6zM14 12h6v8h-6zM4 14h6v6H4z" />
+            </svg>
+            <span class="tab__label">Overview</span>
+          </button>
 
-            <div class="glass-panel analytics-panel">
-                <h2>🤝 Cross-Model Semantic Synchronization</h2>
-                <p class="label">Cosine similarity across heterogeneous models (384d & 768d aligned)</p>
-                <div class="table-container">
-                    <table class="data-table">
-                        <thead><tr><th>From Agent</th><th>To Agent</th><th>From Model</th><th>To Model</th><th>Similarity</th></tr></thead>
-                        <tbody id="similarity-tbody"></tbody>
-                    </table>
-                </div>
-            </div>
+          <button
+            class="tab"
+            role="tab"
+            type="button"
+            data-view="memory"
+            id="tab-memory"
+            aria-controls="panel-memory"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            <svg
+              class="tab__icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M4 7c0-1.7 3.6-3 8-3s8 1.3 8 3-3.6 3-8 3-8-1.3-8-3Z" />
+              <path d="M4 7v5c0 1.7 3.6 3 8 3s8-1.3 8-3V7" />
+              <path d="M4 12v5c0 1.7 3.6 3 8 3s8-1.3 8-3v-5" />
+            </svg>
+            <span class="tab__label">Memory</span>
+          </button>
 
-            <div class="glass-panel analytics-panel">
-                <h2>⚖️ Bayesian Trust & Reputation</h2>
-                <div class="reputation-container">
-                    <div class="rep-events">
-                        <h3>Recent Trust Interactions</h3>
-                        <ul id="rep-events-list"></ul>
-                    </div>
-                    <div class="rep-scores">
-                        <h3>Global Reputation Scores</h3>
-                        <ul id="rep-scores-list"></ul>
-                    </div>
-                </div>
-            </div>
-        </main>
+          <button
+            class="tab"
+            role="tab"
+            type="button"
+            data-view="semantic"
+            id="tab-semantic"
+            aria-controls="panel-semantic"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            <svg
+              class="tab__icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <circle cx="12" cy="5" r="2.4" />
+              <circle cx="5" cy="18" r="2.4" />
+              <circle cx="19" cy="18" r="2.4" />
+              <path d="M10.6 6.9 6.4 15.9M13.4 6.9l4.2 9M7.4 18h9.2" />
+            </svg>
+            <span class="tab__label">Semantic</span>
+          </button>
+
+          <button
+            class="tab"
+            role="tab"
+            type="button"
+            data-view="reputation"
+            id="tab-reputation"
+            aria-controls="panel-reputation"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            <svg
+              class="tab__icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M12 3 19 6v5c0 4.4-2.9 8.2-7 9.4C7.9 19.2 5 15.4 5 11V6l7-3Z" />
+              <path d="m9 12 2 2 4-4" />
+            </svg>
+            <span class="tab__label">Reputation</span>
+          </button>
+
+          <button
+            class="tab"
+            role="tab"
+            type="button"
+            data-view="system"
+            id="tab-system"
+            aria-controls="panel-system"
+            aria-selected="false"
+            tabindex="-1"
+          >
+            <svg
+              class="tab__icon"
+              viewBox="0 0 24 24"
+              width="18"
+              height="18"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="1.6"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              aria-hidden="true"
+              focusable="false"
+            >
+              <path d="M3 12h4l2.5-7 5 14L17 12h4" />
+            </svg>
+            <span class="tab__label">System</span>
+          </button>
+        </div>
+
+        <div class="sidebar__foot">
+          <span class="mono" id="node-version">version unknown</span>
+          <a href="/docs">Documentation</a>
+        </div>
+      </nav>
+
+      <!--
+        Degradation banners: offline, read-only node (no chain key), embedding
+        model still loading, API key required for write actions. main.js renders
+        into this region; it collapses to nothing while empty.
+      -->
+      <div id="banner-region" class="banner-region"></div>
+
+      <main id="main" class="app-main" tabindex="-1">
+        <h1 class="sr-only">NeuroMesh node console</h1>
+
+        <noscript>
+          <div class="callout callout--warn">
+            <p>
+              This console is a JavaScript application and cannot render without it. The node itself
+              is unaffected and keeps serving its HTTP API.
+            </p>
+            <p>
+              Read node status directly at <code class="mono">/api/status</code>, liveness at
+              <code class="mono">/healthz</code>, readiness at <code class="mono">/readyz</code>,
+              and metrics at <code class="mono">/metrics</code>. Operator documentation is at
+              <a href="/docs">/docs</a>.
+            </p>
+          </div>
+        </noscript>
+
+        <section
+          class="view"
+          role="tabpanel"
+          id="panel-overview"
+          aria-labelledby="tab-overview"
+          tabindex="0"
+        >
+          <div class="view__mount" id="mount-overview"></div>
+        </section>
+
+        <section
+          class="view"
+          role="tabpanel"
+          id="panel-memory"
+          aria-labelledby="tab-memory"
+          tabindex="0"
+          hidden
+        >
+          <div class="view__mount" id="mount-memory"></div>
+        </section>
+
+        <section
+          class="view"
+          role="tabpanel"
+          id="panel-semantic"
+          aria-labelledby="tab-semantic"
+          tabindex="0"
+          hidden
+        >
+          <div class="view__mount" id="mount-semantic"></div>
+        </section>
+
+        <section
+          class="view"
+          role="tabpanel"
+          id="panel-reputation"
+          aria-labelledby="tab-reputation"
+          tabindex="0"
+          hidden
+        >
+          <div class="view__mount" id="mount-reputation"></div>
+        </section>
+
+        <section
+          class="view"
+          role="tabpanel"
+          id="panel-system"
+          aria-labelledby="tab-system"
+          tabindex="0"
+          hidden
+        >
+          <div class="view__mount" id="mount-system"></div>
+        </section>
+      </main>
     </div>
-    <script src="app.js"></script>
-</body>
+
+    <div id="toast-region" class="toast-region" role="region" aria-label="Notifications"></div>
+    <div id="modal-root" class="modal-root"></div>
+
+    <!--
+      The two announcement channels. Every async state change in the app is
+      written to one of these; nothing else in the codebase may create a live
+      region. Polite for progress and success, assertive for failures.
+    -->
+    <div id="live-polite" class="sr-only" role="status" aria-live="polite" aria-atomic="true"></div>
+    <div
+      id="live-assertive"
+      class="sr-only"
+      role="alert"
+      aria-live="assertive"
+      aria-atomic="true"
+    ></div>
+  </body>
 </html>

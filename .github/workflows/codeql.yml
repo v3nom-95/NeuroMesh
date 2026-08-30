@@ -1,0 +1,62 @@
+# ---------------------------------------------------------------------------
+# CodeQL static analysis.
+#
+# Two languages are analysed:
+#   javascript-typescript - server.js, src/**, lib/**, scripts/**, public/js/**
+#   actions               - the workflow files in this directory themselves
+#                           (script injection, over-broad permissions, unpinned
+#                           third-party actions). Requires github.com or a
+#                           recent GHES; drop that matrix entry on older GHES.
+#
+# Solidity is NOT covered by CodeQL - there is no CodeQL extractor for it.
+# Solidity static analysis is solhint (npm run lint:sol, in ci.yml) plus
+# Slither, which the solidity lane configures via slither.config.json.
+# ---------------------------------------------------------------------------
+name: CodeQL
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Mondays 04:27 UTC - off the hour so it is not queued with everyone else.
+    - cron: "27 4 * * 1"
+  workflow_dispatch:
+
+concurrency:
+  group: codeql-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  analyze:
+    name: Analyze (${{ matrix.language }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      # Needed to upload the SARIF results to the repository Security tab.
+      security-events: write
+      actions: read
+      contents: read
+    strategy:
+      fail-fast: false
+      matrix:
+        language: [javascript-typescript, actions]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          # Neither language is compiled, so no autobuild step is needed.
+          build-mode: none
+          queries: security-extended,security-and-quality
+
+      - name: Perform CodeQL analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"

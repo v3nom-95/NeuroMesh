@@ -1,0 +1,34 @@
+# Dependencies and build output
+node_modules/
+artifacts/
+cache/
+typechain-types/
+dist/
+.cache/
+
+# Coverage and generated reports
+coverage/
+.nyc_output/
+lcov.info
+reports/
+
+# Generated / machine-owned data files
+package-lock.json
+simulation-results.json
+contract-addresses.json
+deployments/
+
+# Hand-tuned artwork: reformatting changes rendering
+assets/*.svg
+assets/**/*.svg
+public/icons/*.svg
+
+# Binary and verbatim-text files
+*.docx
+LICENSE
+NOTICE
+
+# Contributor Covenant 2.1, reproduced verbatim under CC BY 4.0. Prettier would
+# rewrite its list markers and rewrap its attribution block; the only sanctioned
+# edit to that document is the enforcement contact. Do not format it.
+CODE_OF_CONDUCT.md

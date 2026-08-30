@@ -1,0 +1,1620 @@
+/**
+ * NeuroMesh — Layer 3: UI primitives.
+ *
+ * SCOPE NOTE (phase 1 of the frontend rebuild): this file currently carries
+ * only the primitives the app shell in index.html actually renders — the brand
+ * mark, buttons, status pills, the tablist, callouts, cards, and the toast and
+ * modal mounts. The remaining primitives (toasts, skeletons, data tables,
+ * forms, stat cards, the commit stepper, memory rows) are appended by the
+ * component phase. Nothing here may contain a raw colour, spacing or duration:
+ * every value comes from css/tokens.css.
+ *
+ * Depends on: css/tokens.css, css/base.css, css/layout.css.
+ */
+
+/* ==================================================================== *
+ * Brand mark
+ * ==================================================================== */
+
+.brand-mark {
+  flex: 0 0 auto;
+  color: var(--brand-fg);
+}
+
+.brand-mark__link {
+  opacity: 0.75;
+}
+
+.brand-mark__core {
+  color: var(--accent-fg);
+  fill: var(--accent-fg);
+}
+
+.topbar__wordmark b {
+  font-weight: var(--fw-semibold);
+  color: var(--brand-fg);
+}
+
+/* ==================================================================== *
+ * Buttons
+ *
+ * Capability gating uses `aria-disabled`, never the `disabled` attribute: a
+ * disabled control is removed from the tab order, so a keyboard user cannot
+ * reach it to discover WHY it is unavailable. These controls stay focusable
+ * and carry an aria-describedby explanation; the click handler no-ops.
+ * ==================================================================== */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  min-block-size: 36px;
+  padding: var(--sp-2) var(--sp-4);
+  border: var(--hairline) solid transparent;
+  border-radius: var(--r-md);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  line-height: var(--lh-tight);
+  color: var(--text-primary);
+  white-space: nowrap;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    border-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.btn--primary {
+  background-color: var(--brand-bg);
+  color: var(--text-on-brand);
+}
+
+.btn--primary:hover {
+  background-color: var(--brand-bg-hover);
+}
+
+.btn--secondary {
+  background-color: var(--bg-surface);
+  border-color: var(--border-default);
+}
+
+.btn--secondary:hover {
+  background-color: var(--bg-surface-2);
+}
+
+.btn--ghost {
+  background-color: transparent;
+  color: var(--text-secondary);
+}
+
+.btn--ghost:hover {
+  background-color: var(--overlay-hover);
+  color: var(--text-primary);
+}
+
+.btn--danger {
+  background-color: var(--danger-soft);
+  color: var(--danger-fg);
+  border-color: var(--danger-fg);
+}
+
+/* Icon-only: square, and never below the 44px pointer target on touch. */
+.btn--icon {
+  inline-size: 36px;
+  min-inline-size: 36px;
+  padding: 0;
+}
+
+@media (pointer: coarse) {
+  .btn--icon {
+    inline-size: 44px;
+    min-inline-size: 44px;
+    min-block-size: 44px;
+  }
+}
+
+.btn[aria-disabled='true'] {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.btn[aria-busy='true'] {
+  cursor: progress;
+}
+
+.icon {
+  flex: 0 0 auto;
+}
+
+/* ==================================================================== *
+ * Status pills
+ *
+ * Status is carried by the pill's TEXT, not by its colour alone (WCAG 1.4.1);
+ * the dot and tint are redundant reinforcement. Under 30rem layout.css hides
+ * the label visually, but it remains the element's accessible name.
+ * ==================================================================== */
+
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-1) var(--sp-3);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-full);
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+.pill__dot {
+  inline-size: 7px;
+  block-size: 7px;
+  border-radius: var(--r-full);
+  background-color: currentColor;
+  flex: 0 0 auto;
+}
+
+.pill--neutral {
+  color: var(--text-muted);
+}
+
+.pill--success {
+  background-color: var(--success-soft);
+  color: var(--success-fg);
+  border-color: color-mix(in oklab, var(--success-fg) 35%, transparent);
+}
+
+.pill--warn {
+  background-color: var(--warn-soft);
+  color: var(--warn-fg);
+  border-color: color-mix(in oklab, var(--warn-fg) 35%, transparent);
+}
+
+.pill--danger {
+  background-color: var(--danger-soft);
+  color: var(--danger-fg);
+  border-color: color-mix(in oklab, var(--danger-fg) 35%, transparent);
+}
+
+.pill--info {
+  background-color: var(--info-soft);
+  color: var(--info-fg);
+  border-color: color-mix(in oklab, var(--info-fg) 35%, transparent);
+}
+
+/* ==================================================================== *
+ * Tabs
+ * ==================================================================== */
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  inline-size: 100%;
+  min-block-size: 40px;
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-medium);
+  text-align: start;
+  transition:
+    background-color var(--dur-1) var(--ease-out),
+    color var(--dur-1) var(--ease-out);
+}
+
+.tab:hover {
+  background-color: var(--overlay-hover);
+  color: var(--text-primary);
+}
+
+.tab[aria-selected='true'] {
+  background-color: var(--brand-soft);
+  color: var(--brand-fg);
+  font-weight: var(--fw-semibold);
+}
+
+.tab__icon {
+  flex: 0 0 auto;
+}
+
+.tab__label {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Bottom tab bar: icon over label, and the selected state reads as a top rule
+   rather than a filled pill so the bar stays visually quiet. */
+@media (max-width: 60rem) {
+  .tab {
+    flex-direction: column;
+    justify-content: center;
+    gap: var(--sp-1);
+    inline-size: auto;
+    padding: var(--sp-2) var(--sp-1);
+    border-radius: 0;
+    border-block-start: 2px solid transparent;
+    text-align: center;
+  }
+
+  .tab__label {
+    font-size: var(--fs-3xs);
+  }
+
+  .tab[aria-selected='true'] {
+    background-color: transparent;
+    border-block-start-color: var(--brand-fg);
+  }
+}
+
+/* ==================================================================== *
+ * Cards and callouts
+ * ==================================================================== */
+
+.card {
+  padding: var(--sp-5);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background-color: var(--bg-surface);
+  box-shadow: var(--shadow-1);
+}
+
+.card__header {
+  margin-block-end: var(--sp-4);
+}
+
+.callout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border: var(--hairline) solid var(--border-default);
+  border-inline-start-width: 3px;
+  border-radius: var(--r-md);
+  background-color: var(--bg-surface);
+}
+
+.callout--info {
+  border-color: var(--info-fg);
+  background-color: var(--info-soft);
+  color: var(--info-fg);
+}
+
+.callout--warn {
+  border-color: var(--warn-fg);
+  background-color: var(--warn-soft);
+  color: var(--warn-fg);
+}
+
+.callout--danger {
+  border-color: var(--danger-fg);
+  background-color: var(--danger-soft);
+  color: var(--danger-fg);
+}
+
+.callout a {
+  color: inherit;
+}
+
+/* ==================================================================== *
+ * Overlay mounts
+ * ==================================================================== */
+
+.toast-region {
+  position: fixed;
+  inset-block-end: var(--sp-4);
+  inset-inline-end: var(--sp-4);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  inline-size: min(360px, calc(100vw - var(--sp-8)));
+  /* Never blocks the page when there is nothing to show. */
+  pointer-events: none;
+}
+
+.toast-region > * {
+  pointer-events: auto;
+}
+
+@media (max-width: 60rem) {
+  .toast-region {
+    inset-block-end: calc(var(--bottombar-h) + env(safe-area-inset-bottom) + var(--sp-3));
+  }
+}
+
+.modal-root:empty {
+  display: none;
+}
+
+/* ==================================================================== *
+ * Toasts
+ *
+ * Appended by the runtime phase. js/toast.js builds these nodes with
+ * document.createElement + textContent only; every colour, spacing and
+ * duration below comes from css/tokens.css.
+ *
+ * The enter transition is driven by a class added on the frame after
+ * insertion (.toast--entered), not by an animation, so that
+ * prefers-reduced-motion can skip it entirely without leaving a toast stuck
+ * at opacity 0 — under reduced motion js/toast.js never adds the class and
+ * the base state below is already fully visible.
+ * ==================================================================== */
+
+.toast {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: start;
+  gap: var(--sp-2) var(--sp-3);
+  padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4);
+  border: var(--hairline) solid var(--border-default);
+  border-inline-start: 3px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background-color: var(--bg-elevated);
+  box-shadow: var(--shadow-2);
+  color: var(--text-primary);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+}
+
+/* An action button wraps to its own row rather than squeezing the message. */
+.toast:has(.toast__action) {
+  grid-template-areas:
+    'icon content close'
+    '.    action  .';
+}
+
+.toast:has(.toast__action) > .toast__icon {
+  grid-area: icon;
+}
+
+.toast:has(.toast__action) > .toast__content {
+  grid-area: content;
+}
+
+.toast:has(.toast__action) > .toast__action {
+  grid-area: action;
+  justify-self: start;
+}
+
+.toast:has(.toast__action) > .toast__close {
+  grid-area: close;
+}
+
+.toast__icon {
+  flex: 0 0 auto;
+  margin-block-start: 1px;
+}
+
+.toast__content {
+  min-inline-size: 0;
+}
+
+.toast__title {
+  margin: 0;
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-tight);
+}
+
+.toast__message {
+  margin: var(--sp-1) 0 0;
+  color: var(--text-secondary);
+  /* A long CID or error string must wrap, not widen the toast. */
+  overflow-wrap: anywhere;
+}
+
+.toast__body {
+  margin: var(--sp-1) 0 0;
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+  overflow-wrap: anywhere;
+}
+
+/* The "x3" repeat counter, shown instead of stacking identical toasts. */
+.toast__count {
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-regular);
+}
+
+.toast__action {
+  min-block-size: 30px;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
+.toast__close {
+  inline-size: 28px;
+  min-inline-size: 28px;
+  min-block-size: 28px;
+  font-size: var(--fs-lg);
+  line-height: 1;
+  color: var(--text-muted);
+}
+
+.toast__close:hover {
+  color: var(--text-primary);
+}
+
+/* Severity is carried by the rail colour AND the icon shape, never colour
+   alone (WCAG 1.4.1) — the icons are a circle, a tick, a triangle and a
+   cross, which stay distinguishable in monochrome and in forced-colors. */
+.toast--info {
+  border-inline-start-color: var(--info-fg);
+}
+
+.toast--info .toast__icon {
+  color: var(--info-fg);
+}
+
+.toast--success {
+  border-inline-start-color: var(--success-fg);
+}
+
+.toast--success .toast__icon {
+  color: var(--success-fg);
+}
+
+.toast--warning {
+  border-inline-start-color: var(--warn-fg);
+}
+
+.toast--warning .toast__icon {
+  color: var(--warn-fg);
+}
+
+.toast--error {
+  border-inline-start-color: var(--danger-fg);
+}
+
+.toast--error .toast__icon {
+  color: var(--danger-fg);
+}
+
+.toast--entered {
+  animation: toast-in var(--dur-2) var(--ease-out) both;
+}
+
+.toast--leaving {
+  opacity: 0;
+  transform: translateY(4px);
+  transition:
+    opacity var(--dur-2) var(--ease-out),
+    transform var(--dur-2) var(--ease-out);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast--entered {
+    animation: none;
+  }
+
+  .toast--leaving {
+    transition: none;
+  }
+}
+
+@media (forced-colors: active) {
+  .toast {
+    border: 1px solid CanvasText;
+    border-inline-start-width: 3px;
+  }
+}
+
+/* ==================================================================== *
+ * PHASE 3 — the remaining UI primitives.
+ *
+ * Everything above this line was written by the shell and runtime phases
+ * (brand mark, buttons, pills, tabs, cards, callouts, overlay mounts,
+ * toasts) and is NOT edited here; this block only adds what was missing:
+ * button sizes and busy state, card sub-parts, stat tiles, data tables,
+ * badges, skeletons, modal, form controls, banners, the progress stepper,
+ * empty states, code/hash chips with a copy button, spinners and key-value
+ * lists.
+ *
+ * `.sr-only` is deliberately NOT redefined here — base.css already owns it
+ * (together with `.sr-only-focusable` and `.visually-hidden-table`), and a
+ * second definition in a later layer is exactly how the two silently drift
+ * apart. Use the one in base.css.
+ *
+ * Depends on: css/tokens.css, css/base.css, css/layout.css.
+ * ==================================================================== */
+
+/* ==================================================================== *
+ * Buttons — sizes, block, and the loading state
+ * ==================================================================== */
+
+.btn--sm {
+  min-block-size: 30px;
+  padding: var(--sp-1) var(--sp-3);
+  font-size: var(--fs-xs);
+}
+
+.btn--lg {
+  min-block-size: 44px;
+  padding: var(--sp-3) var(--sp-5);
+  font-size: var(--fs-md);
+}
+
+.btn--block {
+  inline-size: 100%;
+}
+
+/*
+ * A busy button keeps its label. Replacing the text with "Loading…" destroys
+ * the accessible name mid-interaction, which is the exact defect the old
+ * dashboard had (`btn.innerText = "Sending Transaction to Sepolia..."`
+ * immediately followed by `btn.disabled = true`). The spinner is added
+ * ALONGSIDE the label and the state is announced through the live region.
+ *
+ * Both spellings are honoured: the shell shipped `aria-busy`, the component
+ * spec calls for `data-busy`.
+ */
+.btn[aria-busy='true'],
+.btn[data-busy='true'] {
+  cursor: progress;
+}
+
+.btn[aria-disabled='true'],
+.btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+/* ==================================================================== *
+ * Spinner
+ *
+ * Never used alone: every spinner is paired with `.sr-only` text, because a
+ * rotating ring has no accessible name and announces nothing.
+ * ==================================================================== */
+
+.spinner {
+  inline-size: 16px;
+  block-size: 16px;
+  flex: 0 0 auto;
+  border: 2px solid var(--border-subtle);
+  border-block-start-color: var(--brand-fg);
+  border-radius: var(--r-full);
+  animation: spin 0.8s linear infinite;
+}
+
+.spinner--lg {
+  inline-size: 28px;
+  block-size: 28px;
+  border-width: 3px;
+}
+
+.spinner--inline {
+  inline-size: 14px;
+  block-size: 14px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(1turn);
+  }
+}
+
+/* ==================================================================== *
+ * Cards — sub-parts the shell left to this phase
+ * ==================================================================== */
+
+.card--flush {
+  padding: 0;
+}
+
+.card--tight {
+  padding: var(--sp-4);
+}
+
+.card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-2) var(--sp-4);
+  padding-block-end: var(--sp-3);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+}
+
+.card__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+  line-height: var(--lh-snug);
+}
+
+.card__hint {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.card__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2);
+}
+
+.card__footer {
+  margin-block-start: var(--sp-4);
+  padding-block-start: var(--sp-3);
+  border-block-start: var(--hairline) solid var(--border-subtle);
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+}
+
+/* ==================================================================== *
+ * Stat tiles
+ *
+ * The value is the loudest thing in the tile and it is `tabular-nums`, so a
+ * polling refresh changes the digits without the number changing width and
+ * shifting everything beside it.
+ * ==================================================================== */
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  padding: var(--sp-4);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-lg);
+  background-color: var(--bg-surface);
+  min-inline-size: 0;
+}
+
+.stat__label {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+  text-transform: uppercase;
+  letter-spacing: var(--ls-wide);
+}
+
+.stat__value {
+  font-size: var(--fs-2xl);
+  font-weight: var(--fw-bold);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--ls-tight);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.stat__unit {
+  margin-inline-start: var(--sp-1);
+  color: var(--text-muted);
+  font-size: var(--fs-sm);
+  font-weight: var(--fw-regular);
+}
+
+.stat__meta {
+  color: var(--text-secondary);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+/* A delta is never colour-only: the component prints an arrow glyph too. */
+.stat__delta--up {
+  color: var(--success-fg);
+}
+
+.stat__delta--down {
+  color: var(--danger-fg);
+}
+
+.stat__spark {
+  margin-block-start: var(--sp-2);
+}
+
+/* A row of label/value pairs inside a card. */
+.stat__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding-block: var(--sp-2);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+}
+
+.stat__row:last-child {
+  border-block-end: 0;
+}
+
+/* ==================================================================== *
+ * Data tables
+ *
+ * The wrapper — not the table — scrolls, and dataTable.js gives it
+ * `tabindex="0"` and `role="region"` so a keyboard user can actually reach
+ * the scroll container. A horizontally scrollable region that cannot be
+ * focused is unreachable without a mouse.
+ * ==================================================================== */
+
+.table-wrap {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  max-inline-size: 100%;
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-md);
+  background-color: var(--bg-surface);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  font-size: var(--fs-xs);
+}
+
+.table caption {
+  padding: var(--sp-3) var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  text-align: start;
+}
+
+.table th {
+  padding: var(--sp-3);
+  border-block-end: var(--hairline) solid var(--border-default);
+  color: var(--text-secondary);
+  font-weight: var(--fw-semibold);
+  text-align: start;
+  white-space: nowrap;
+}
+
+/* Sticky header. `background` is mandatory: a transparent sticky header lets
+   the rows scroll visibly underneath the labels. */
+.table thead th {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  background-color: var(--bg-surface-2);
+}
+
+.table td {
+  padding: var(--sp-3);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+  vertical-align: top;
+}
+
+.table tbody tr:last-child td {
+  border-block-end: 0;
+}
+
+.table tbody tr:hover {
+  background-color: var(--overlay-hover);
+}
+
+.table--zebra tbody tr:nth-child(even) {
+  background-color: color-mix(in oklab, var(--bg-surface-2) 55%, transparent);
+}
+
+.table--zebra tbody tr:nth-child(even):hover {
+  background-color: var(--overlay-hover);
+}
+
+.table__num {
+  text-align: end;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Sort affordance. The caret is generated from the ARIA state, so the visual
+   and the announced state can never disagree. */
+.table th[aria-sort] {
+  cursor: pointer;
+}
+
+.table th[aria-sort='ascending']::after {
+  content: ' \25B2';
+  color: var(--brand-fg);
+}
+
+.table th[aria-sort='descending']::after {
+  content: ' \25BC';
+  color: var(--brand-fg);
+}
+
+.table th[aria-sort='none']::after {
+  content: ' \2195';
+  color: var(--text-muted);
+}
+
+/* ==================================================================== *
+ * Badges
+ *
+ * A badge labels a thing (a model name, an encryption mode). A pill reports
+ * a live status. Keeping them separate stops a static label from acquiring a
+ * status colour it does not deserve.
+ * ==================================================================== */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-1);
+  padding: 0 var(--sp-2);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-xs);
+  background-color: var(--bg-surface-2);
+  color: var(--text-secondary);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-medium);
+  white-space: nowrap;
+}
+
+.badge--brand {
+  border-color: color-mix(in oklab, var(--brand-fg) 35%, transparent);
+  background-color: var(--brand-soft);
+  color: var(--brand-fg);
+}
+
+.badge--accent {
+  border-color: color-mix(in oklab, var(--accent-fg) 35%, transparent);
+  background-color: var(--accent-soft);
+  color: var(--accent-fg);
+}
+
+.badge--teal {
+  background-color: var(--teal-soft);
+  color: var(--teal-fg);
+}
+
+/* Alias for the component spec's tone name; the shell shipped `--success`. */
+.pill--ok {
+  background-color: var(--success-soft);
+  color: var(--success-fg);
+  border-color: color-mix(in oklab, var(--success-fg) 35%, transparent);
+}
+
+/* A pulsing dot means "still working". It is decorative reinforcement only —
+   the pill's text always names the state — and it stops under reduced motion
+   via the global block in base.css. */
+.pill--pulse .pill__dot {
+  animation: pill-pulse 2s var(--ease-in-out) infinite;
+}
+
+@keyframes pill-pulse {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+/* ==================================================================== *
+ * Skeleton loaders
+ *
+ * A skeleton is decorative: the container carries `aria-busy="true"` and the
+ * live region announces the load, so the shimmer itself must be invisible to
+ * assistive technology (`aria-hidden` on every skeleton node).
+ * ==================================================================== */
+
+.skeleton {
+  background-color: var(--bg-inset);
+  background-image: linear-gradient(
+    90deg,
+    var(--bg-inset) 25%,
+    var(--bg-surface-2) 37%,
+    var(--bg-inset) 63%
+  );
+  background-size: 400% 100%;
+  border-radius: var(--r-sm);
+  animation: skeleton-shimmer 1.4s var(--ease-in-out) infinite;
+}
+
+.skeleton--text {
+  block-size: 0.85em;
+  margin-block: 0.3em;
+}
+
+.skeleton--text:nth-child(3n) {
+  inline-size: 72%;
+}
+
+.skeleton--title {
+  block-size: 1.4em;
+  inline-size: 42%;
+  margin-block-end: var(--sp-3);
+}
+
+.skeleton--pill {
+  block-size: 24px;
+  inline-size: 7rem;
+  border-radius: var(--r-full);
+}
+
+.skeleton--card {
+  block-size: 120px;
+  border-radius: var(--r-lg);
+}
+
+.skeleton--chart {
+  block-size: 220px;
+  border-radius: var(--r-lg);
+}
+
+.skeleton--row {
+  block-size: 44px;
+  margin-block-end: var(--sp-2);
+}
+
+@keyframes skeleton-shimmer {
+  from {
+    background-position: 100% 50%;
+  }
+
+  to {
+    background-position: 0 50%;
+  }
+}
+
+/* ==================================================================== *
+ * Modal / dialog
+ *
+ * modal.js owns the focus trap, the `Escape` handler and the restore-focus
+ * behaviour; this file owns nothing but the box.
+ * ==================================================================== */
+
+.modal-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: grid;
+  place-items: center;
+  padding: var(--sp-4);
+  background-color: var(--scrim);
+}
+
+.modal {
+  display: flex;
+  flex-direction: column;
+  inline-size: min(36rem, 100%);
+  max-block-size: min(85dvh, 48rem);
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-lg);
+  background-color: var(--bg-elevated);
+  box-shadow: var(--shadow-3);
+}
+
+.modal--wide {
+  inline-size: min(56rem, 100%);
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-5);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+}
+
+.modal__title {
+  font-size: var(--fs-lg);
+  font-weight: var(--fw-semibold);
+}
+
+.modal__body {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: var(--sp-5);
+}
+
+.modal__foot {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--sp-2);
+  padding: var(--sp-4) var(--sp-5);
+  border-block-start: var(--hairline) solid var(--border-subtle);
+}
+
+/* ==================================================================== *
+ * Form controls
+ *
+ * There is no `outline: none` anywhere in this block. The old stylesheet's
+ * `textarea:focus { outline: none }` replaced the focus indicator with a 1px
+ * border-colour change that failed WCAG 2.4.11; the global `:focus-visible`
+ * ring in base.css is the only focus treatment and it is never overridden.
+ * ==================================================================== */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  min-inline-size: 0;
+}
+
+.field__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.label {
+  color: var(--text-secondary);
+  font-size: var(--fs-xs);
+  font-weight: var(--fw-medium);
+}
+
+.label__required {
+  color: var(--danger-fg);
+  margin-inline-start: var(--sp-1);
+}
+
+.input,
+.textarea,
+.select {
+  inline-size: 100%;
+  min-block-size: 36px;
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-md);
+  background-color: var(--bg-inset);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: var(--fs-sm);
+  line-height: var(--lh-normal);
+}
+
+.input--mono,
+.textarea--mono {
+  font-family: var(--font-mono);
+}
+
+.textarea {
+  min-block-size: 8rem;
+  resize: vertical;
+}
+
+.select {
+  padding-inline-end: var(--sp-8);
+}
+
+.input:hover,
+.textarea:hover,
+.select:hover {
+  border-color: var(--border-strong);
+}
+
+/* Error state is border + icon + message text, never border colour alone
+   (WCAG 1.4.1); the message is wired through `aria-describedby`. */
+.input[aria-invalid='true'],
+.textarea[aria-invalid='true'],
+.select[aria-invalid='true'] {
+  border-color: var(--danger-fg);
+  background-color: var(--danger-soft);
+}
+
+.field__hint {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+}
+
+.field__error {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--sp-2);
+  color: var(--danger-fg);
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-medium);
+}
+
+.field__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.counter {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.counter--near {
+  color: var(--warn-fg);
+}
+
+.counter--over {
+  color: var(--danger-fg);
+  font-weight: var(--fw-semibold);
+}
+
+/*
+ * Switch. A real `<input type="checkbox" class="switch__input">` sits under
+ * the track, so the control is keyboard operable, announces its checked state
+ * and works with forms — none of which a `<div role="switch">` gets for free.
+ */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-3);
+  cursor: pointer;
+}
+
+.switch__input {
+  position: absolute;
+  opacity: 0;
+  inline-size: 36px;
+  block-size: 20px;
+  margin: 0;
+}
+
+.switch__track {
+  position: relative;
+  inline-size: 36px;
+  block-size: 20px;
+  flex: 0 0 auto;
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-full);
+  background-color: var(--bg-inset);
+  transition: background-color var(--dur-1) var(--ease-out);
+}
+
+.switch__track::after {
+  content: '';
+  position: absolute;
+  inset-block-start: 2px;
+  inset-inline-start: 2px;
+  inline-size: 14px;
+  block-size: 14px;
+  border-radius: var(--r-full);
+  background-color: var(--text-secondary);
+  transition: transform var(--dur-1) var(--ease-out);
+}
+
+.switch__input:checked + .switch__track {
+  background-color: var(--brand-bg);
+  border-color: var(--brand-bg);
+}
+
+.switch__input:checked + .switch__track::after {
+  background-color: var(--text-on-brand);
+  transform: translateX(16px);
+}
+
+.switch__input:focus-visible + .switch__track {
+  outline: var(--focus-width) solid var(--focus-ring);
+  outline-offset: var(--focus-offset);
+}
+
+.range {
+  inline-size: 100%;
+  accent-color: var(--brand-bg);
+}
+
+/* ==================================================================== *
+ * Banners — full-width degradation notices in #banner-region
+ *
+ * These are how the console explains itself when the backend is not fully
+ * configured: read-only (no signing key), model still loading, offline, API
+ * key required. Every one of them states the consequence, not just the fact.
+ * ==================================================================== */
+
+.banner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--gutter);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+  font-size: var(--fs-xs);
+}
+
+.banner__text {
+  min-inline-size: 0;
+}
+
+.banner__actions {
+  display: flex;
+  gap: var(--sp-2);
+  margin-inline-start: auto;
+}
+
+.banner--info {
+  background-color: var(--info-soft);
+  color: var(--info-fg);
+  border-block-end-color: var(--info-fg);
+}
+
+.banner--warn {
+  background-color: var(--warn-soft);
+  color: var(--warn-fg);
+  border-block-end-color: var(--warn-fg);
+}
+
+.banner--danger {
+  background-color: var(--danger-soft);
+  color: var(--danger-fg);
+  border-block-end-color: var(--danger-fg);
+}
+
+/* ==================================================================== *
+ * Progress stepper — the memory-commit pipeline
+ *
+ * embed -> encrypt -> pin to IPFS -> sign -> confirm on Sepolia. The repo's
+ * own benchmark records total latencies above 24 seconds, so this replaces a
+ * 25-second unexplained spinner with a per-stage state and an elapsed time.
+ *
+ * State lives in `data-state`, which drives BOTH the styling and the marker
+ * glyph the component draws, so the visual and the announced state cannot
+ * drift. The list itself carries `aria-live="polite"`.
+ * ==================================================================== */
+
+.stepper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 24px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-2) var(--sp-3);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-xs);
+  transition:
+    background-color var(--dur-2) var(--ease-out),
+    color var(--dur-2) var(--ease-out);
+}
+
+.step__marker {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: 24px;
+  block-size: 24px;
+  border: var(--hairline) solid var(--border-default);
+  border-radius: var(--r-full);
+  background-color: var(--bg-surface);
+  font-size: var(--fs-3xs);
+  font-weight: var(--fw-semibold);
+  font-variant-numeric: tabular-nums;
+}
+
+.step__label {
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.step__time {
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+  font-variant-numeric: tabular-nums;
+}
+
+.step[data-state='pending'] {
+  color: var(--text-muted);
+}
+
+.step[data-state='active'] {
+  background-color: var(--brand-soft);
+  color: var(--brand-fg);
+  font-weight: var(--fw-medium);
+}
+
+.step[data-state='active'] .step__marker {
+  border-color: var(--brand-fg);
+  color: var(--brand-fg);
+}
+
+.step[data-state='done'] {
+  color: var(--text-secondary);
+}
+
+.step[data-state='done'] .step__marker {
+  border-color: var(--success-fg);
+  color: var(--success-fg);
+}
+
+.step[data-state='failed'] {
+  background-color: var(--danger-soft);
+  color: var(--danger-fg);
+}
+
+.step[data-state='failed'] .step__marker {
+  border-color: var(--danger-fg);
+  color: var(--danger-fg);
+}
+
+.step[data-state='skipped'] {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+/* ==================================================================== *
+ * Empty states
+ *
+ * Charts fall back to `.empty--chart`; panels use the standalone form. A
+ * fresh clone has no `simulation-results.json` (it is gitignored), so the
+ * DEFAULT experience of several panels is this component — which is why it
+ * carries a copyable command rather than a shrug.
+ * ==================================================================== */
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-10) var(--sp-4);
+  border: var(--hairline) dashed var(--border-default);
+  border-radius: var(--r-md);
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.empty--chart {
+  padding: var(--sp-8) var(--sp-4);
+  min-block-size: 12rem;
+  justify-content: center;
+}
+
+.empty__icon {
+  inline-size: 40px;
+  block-size: 40px;
+  color: var(--text-muted);
+}
+
+.empty__title {
+  color: var(--text-primary);
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+}
+
+.empty__body {
+  max-inline-size: 44ch;
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+}
+
+.empty__cmd {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-3);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-sm);
+  background-color: var(--bg-inset);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+}
+
+/* ==================================================================== *
+ * Code and hash chips, with a copy button
+ *
+ * A CID or a 0x address is long, meaningless in the middle, and the thing a
+ * user most often needs on the clipboard. The chip truncates in the MIDDLE
+ * (both ends carry information), keeps the full value in `title` and in an
+ * `.sr-only` span, and puts the copy control inside the chip so the target is
+ * unambiguous.
+ * ==================================================================== */
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-2);
+  max-inline-size: 100%;
+  padding: var(--sp-1) var(--sp-1) var(--sp-1) var(--sp-3);
+  border: var(--hairline) solid var(--border-subtle);
+  border-radius: var(--r-full);
+  background-color: var(--bg-inset);
+  font-family: var(--font-mono);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-tight);
+}
+
+.chip--code {
+  border-radius: var(--r-sm);
+  padding-inline-start: var(--sp-2);
+}
+
+.chip--block {
+  display: flex;
+  inline-size: 100%;
+  justify-content: space-between;
+}
+
+.chip__value {
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-primary);
+}
+
+.chip__label {
+  color: var(--text-muted);
+  font-family: var(--font-sans);
+}
+
+.addr {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.copy-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-1);
+  inline-size: 26px;
+  block-size: 26px;
+  flex: 0 0 auto;
+  padding: 0;
+  border: var(--hairline) solid transparent;
+  border-radius: var(--r-full);
+  background-color: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.copy-btn:hover {
+  background-color: var(--overlay-hover);
+  color: var(--text-primary);
+}
+
+/* The success state is transient and is ALSO announced through the live
+   region — a colour flip alone is invisible to a screen-reader user and to
+   anyone not looking directly at the button when it fires. */
+.copy-btn--copied {
+  color: var(--success-fg);
+  border-color: color-mix(in oklab, var(--success-fg) 45%, transparent);
+}
+
+/* A touch target under 44px is a WCAG 2.2 2.5.8 failure on a coarse pointer. */
+@media (pointer: coarse) {
+  .copy-btn {
+    inline-size: 44px;
+    block-size: 44px;
+  }
+}
+
+/* ==================================================================== *
+ * Key/value description lists
+ * ==================================================================== */
+
+.kv {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--sp-2) var(--sp-4);
+  margin: 0;
+  font-size: var(--fs-xs);
+}
+
+.kv dt {
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.kv dd {
+  margin: 0;
+  color: var(--text-primary);
+  overflow-wrap: anywhere;
+}
+
+@container card (max-width: 22rem) {
+  .kv {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--sp-1) 0;
+  }
+
+  .kv dd {
+    margin-block-end: var(--sp-2);
+  }
+}
+
+/* ==================================================================== *
+ * Memory rows
+ * ==================================================================== */
+
+.memory-row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  padding: var(--sp-4);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+}
+
+.memory-row:last-child {
+  border-block-end: 0;
+}
+
+.memory-row__head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2) var(--sp-3);
+}
+
+.memory-row__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-2) var(--sp-4);
+  color: var(--text-muted);
+  font-size: var(--fs-2xs);
+}
+
+/* ==================================================================== *
+ * Preference blocks for everything added above
+ * ==================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  .switch__track,
+  .switch__track::after,
+  .step {
+    transition: none;
+  }
+
+  .pill--pulse .pill__dot {
+    animation: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .badge,
+  .chip,
+  .stat,
+  .table-wrap,
+  .step__marker {
+    border-color: var(--border-strong);
+  }
+
+  .empty {
+    border-style: solid;
+  }
+}
+
+@media (forced-colors: active) {
+  .skeleton {
+    background-image: none;
+    background-color: Canvas;
+    border: 1px solid CanvasText;
+  }
+
+  .modal,
+  .table-wrap,
+  .stat,
+  .badge,
+  .chip,
+  .banner,
+  .empty {
+    border: 1px solid CanvasText;
+  }
+
+  .step[data-state='active'],
+  .step[data-state='failed'] {
+    outline: 1px solid CanvasText;
+  }
+}
+
+@media print {
+  .table-wrap {
+    overflow: visible;
+  }
+
+  .copy-btn,
+  .modal-scrim {
+    display: none;
+  }
+}

@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 760" width="1200" height="760"
+     role="img" aria-labelledby="nma-t nma-d" preserveAspectRatio="xMidYMid meet">
+  <title id="nma-t">NeuroMesh layered architecture</title>
+  <desc id="nma-d">Five stacked layers. L1 Clients: the dashboard in public, scripts/simulate.js and any HTTP client. L2 HTTP API in server.js on Express 5: helmet and cors, rate limiting, zod validation, the /api/v1 routes and pino-http logging. L3 Services, one module per route group: memories, agents, reputation, semantic and jobs. L4 Protocol core under src/protocol: envelope, keys, eip712, projection and similarity. L5 External: Xenova ONNX models, Pinata IPFS, a Sepolia RPC and the Solidity contracts. A dashed cross-cutting rail on the right holds pino structured logs, the prom-client metrics endpoint, the healthz and readyz probes and the Docker node 22 slim image.</desc>
+  <defs>
+    <linearGradient id="nma-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020c1b"/>
+      <stop offset="100%" stop-color="#03080f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="760" fill="url(#nma-bg)"/>
+  <rect x="0.5" y="0.5" width="1199" height="759" fill="none" stroke="#1e293b"/>
+  <text x="40" y="36" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#e6edf7">Layered architecture</text>
+  <text x="40" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">solid arrow = call path downward, dashed = response upward</text>
+  <g>
+    <rect x="40" y="76" width="880" height="104" rx="12" fill="#0b1220" stroke="#1e293b" stroke-width="1.2"/>
+    <rect x="40" y="90" width="4" height="76" rx="2" fill="#4facfe"/>
+  <text x="64" y="116" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">Clients</text>
+  <text x="64" y="136" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">browser + CLI</text>
+  <text x="64" y="158" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#4facfe" fill-opacity="0.8">L1</text>
+    <rect x="210" y="108" width="128" height="40" rx="8" fill="none" stroke="#4facfe" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="274" y="132" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">Dashboard (public/)</text>
+    <rect x="350" y="108" width="128" height="40" rx="8" fill="none" stroke="#4facfe" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="414" y="132" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">scripts/simulate.js</text>
+    <rect x="490" y="108" width="128" height="40" rx="8" fill="none" stroke="#4facfe" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="554" y="132" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">curl / any HTTP</text>
+  </g>
+  <line x1="470" y1="183" x2="470" y2="196" stroke="#1e293b" stroke-width="1.4"/>
+  <path d="M 466 195 L 470 201 L 474 195 Z" fill="#1e293b"/>
+  <line x1="540" y1="201" x2="540" y2="188" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <path d="M 536 189 L 540 183 L 544 189 Z" fill="#1e293b"/>
+  <g>
+    <rect x="40" y="204" width="880" height="104" rx="12" fill="#0b1220" stroke="#1e293b" stroke-width="1.2"/>
+    <rect x="40" y="218" width="4" height="76" rx="2" fill="#06b6d4"/>
+  <text x="64" y="244" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">HTTP API</text>
+  <text x="64" y="264" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">server.js &#183; Express 5</text>
+  <text x="64" y="286" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#06b6d4" fill-opacity="0.8">L2</text>
+    <rect x="210" y="236" width="128" height="40" rx="8" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="274" y="260" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">helmet + cors</text>
+    <rect x="350" y="236" width="128" height="40" rx="8" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="414" y="260" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">rate limit</text>
+    <rect x="490" y="236" width="128" height="40" rx="8" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="554" y="260" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">zod validate</text>
+    <rect x="630" y="236" width="128" height="40" rx="8" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="694" y="260" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">/api/v1 routes</text>
+    <rect x="770" y="236" width="128" height="40" rx="8" fill="none" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="834" y="260" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">pino-http</text>
+  </g>
+  <line x1="470" y1="311" x2="470" y2="324" stroke="#1e293b" stroke-width="1.4"/>
+  <path d="M 466 323 L 470 329 L 474 323 Z" fill="#1e293b"/>
+  <line x1="540" y1="329" x2="540" y2="316" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <path d="M 536 317 L 540 311 L 544 317 Z" fill="#1e293b"/>
+  <g>
+    <rect x="40" y="332" width="880" height="104" rx="12" fill="#0b1220" stroke="#1e293b" stroke-width="1.2"/>
+    <rect x="40" y="346" width="4" height="76" rx="2" fill="#a855f7"/>
+  <text x="64" y="372" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">Services</text>
+  <text x="64" y="392" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">per route group</text>
+  <text x="64" y="414" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#a855f7" fill-opacity="0.8">L3</text>
+    <rect x="210" y="364" width="128" height="40" rx="8" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="274" y="388" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">memories</text>
+    <rect x="350" y="364" width="128" height="40" rx="8" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="414" y="388" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">agents</text>
+    <rect x="490" y="364" width="128" height="40" rx="8" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="554" y="388" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">reputation</text>
+    <rect x="630" y="364" width="128" height="40" rx="8" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="694" y="388" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">semantic</text>
+    <rect x="770" y="364" width="128" height="40" rx="8" fill="none" stroke="#a855f7" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="834" y="388" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">jobs</text>
+  </g>
+  <line x1="470" y1="439" x2="470" y2="452" stroke="#1e293b" stroke-width="1.4"/>
+  <path d="M 466 451 L 470 457 L 474 451 Z" fill="#1e293b"/>
+  <line x1="540" y1="457" x2="540" y2="444" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <path d="M 536 445 L 540 439 L 544 445 Z" fill="#1e293b"/>
+  <g>
+    <rect x="40" y="460" width="880" height="104" rx="12" fill="#0b1220" stroke="#1e293b" stroke-width="1.2"/>
+    <rect x="40" y="474" width="4" height="76" rx="2" fill="#34d399"/>
+  <text x="64" y="500" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">Protocol core</text>
+  <text x="64" y="520" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">src/protocol/*</text>
+  <text x="64" y="542" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#34d399" fill-opacity="0.8">L4</text>
+    <rect x="210" y="492" width="128" height="40" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="274" y="516" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">envelope</text>
+    <rect x="350" y="492" width="128" height="40" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="414" y="516" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">keys</text>
+    <rect x="490" y="492" width="128" height="40" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="554" y="516" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">eip712</text>
+    <rect x="630" y="492" width="128" height="40" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="694" y="516" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">projection</text>
+    <rect x="770" y="492" width="128" height="40" rx="8" fill="none" stroke="#34d399" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="834" y="516" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">similarity</text>
+  </g>
+  <line x1="470" y1="567" x2="470" y2="580" stroke="#1e293b" stroke-width="1.4"/>
+  <path d="M 466 579 L 470 585 L 474 579 Z" fill="#1e293b"/>
+  <line x1="540" y1="585" x2="540" y2="572" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <path d="M 536 573 L 540 567 L 544 573 Z" fill="#1e293b"/>
+  <g>
+    <rect x="40" y="588" width="880" height="104" rx="12" fill="#0b1220" stroke="#1e293b" stroke-width="1.2"/>
+    <rect x="40" y="602" width="4" height="76" rx="2" fill="#f59e0b"/>
+  <text x="64" y="628" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">External</text>
+  <text x="64" y="648" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">ONNX &#183; IPFS &#183; EVM</text>
+  <text x="64" y="670" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#f59e0b" fill-opacity="0.8">L5</text>
+    <rect x="210" y="620" width="128" height="40" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="274" y="644" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">Xenova ONNX</text>
+    <rect x="350" y="620" width="128" height="40" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="414" y="644" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">Pinata IPFS</text>
+    <rect x="490" y="620" width="128" height="40" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="554" y="644" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">Sepolia RPC</text>
+    <rect x="630" y="620" width="128" height="40" rx="8" fill="none" stroke="#f59e0b" stroke-width="1" stroke-opacity="0.55"/>
+  <text x="694" y="644" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">contracts/*.sol</text>
+  </g>
+
+  <rect x="952" y="76" width="208" height="616" rx="12" fill="none" stroke="#1e293b" stroke-width="1.2" stroke-dasharray="6 5"/>
+  <text x="1056" y="106" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" letter-spacing="1.4" fill="#94a3b8">CROSS-CUTTING &amp; OPS</text>
+    <rect x="968" y="136" width="176" height="42" rx="8" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="1056" y="161" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">pino structured logs</text>
+    <rect x="968" y="198" width="176" height="42" rx="8" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="1056" y="223" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">prom-client /metrics</text>
+    <rect x="968" y="260" width="176" height="42" rx="8" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="1056" y="285" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">/healthz + /readyz</text>
+    <rect x="968" y="322" width="176" height="42" rx="8" fill="none" stroke="#38bdf8" stroke-width="1" stroke-opacity="0.45"/>
+  <text x="1056" y="347" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">Docker node:22-slim</text>
+  <line x1="920" y1="256" x2="952" y2="256" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 4"/>
+  <line x1="920" y1="384" x2="952" y2="384" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 4"/>
+  <line x1="920" y1="512" x2="952" y2="512" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 4"/>
+  <line x1="920" y1="640" x2="952" y2="640" stroke="#1e293b" stroke-width="1" stroke-dasharray="2 4"/>
+
+  <text x="40" y="720" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">Protocol-core module names are the real files under src/protocol/. Service names are the /api/v1 route groups they serve.</text>
+  <text x="40" y="738" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#64748b">External layer: @huggingface/transformers (ONNX) &#183; Pinata IPFS &#183; ethers v6 against a Sepolia RPC &#183; Solidity 0.8.24 / OpenZeppelin v5.</text>
+
+</svg>

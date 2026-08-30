@@ -1,0 +1,85 @@
+name: Feature request
+description: Propose a new capability or a protocol change
+title: "feat: "
+labels: ["enhancement", "triage"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Describe the problem before the solution. The most useful proposals explain what an agent
+        or operator cannot do today; the implementation is usually the easy part to negotiate.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      options:
+        - Smart contracts
+        - Backend API
+        - Dashboard / frontend
+        - Cryptography
+        - Semantic sync / alignment
+        - Reputation / trust model
+        - Tooling / CI / Docker
+        - Documentation
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What can you not do today? Describe the user or agent scenario, not the solution.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: What should the behaviour be? Include the API or ABI surface if you have one in mind.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Including "do nothing" - say why it is not good enough.
+
+  - type: dropdown
+    id: breaking
+    attributes:
+      label: Is this a breaking change?
+      options:
+        - "No"
+        - "Yes - HTTP API surface"
+        - "Yes - on-chain storage layout or ABI"
+        - "Yes - configuration or environment variables"
+        - "Not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: onchain
+    attributes:
+      label: On-chain impact
+      description: >
+        Does this require a contract redeploy or a storage migration? Estimate the gas delta if you
+        know it (`REPORT_GAS=true npm run test:contracts`). Write "none" if no contract changes.
+
+  - type: textarea
+    id: security
+    attributes:
+      label: Security and trust implications
+      description: >
+        Does this widen the trusted surface, add a third party, change who can decrypt a memory,
+        or affect the sybil-resistance argument in docs/SECURITY-MODEL.md?
+
+  - type: checkboxes
+    id: contribution
+    attributes:
+      label: Participation
+      options:
+        - label: I am willing to open a pull request implementing this
+        - label: I have read CONTRIBUTING.md

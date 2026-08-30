@@ -1,0 +1,6 @@
+{
+  "name": "@neuromesh/test-backend-services",
+  "private": true,
+  "type": "module",
+  "main": "index.js"
+}

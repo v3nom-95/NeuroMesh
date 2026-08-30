@@ -1,0 +1,101 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" role="img" aria-labelledby="nm-favicon-title">
+  <title id="nm-favicon-title">NeuroMesh</title>
+  <!--
+    Theme-adaptive node mark: a hexagon frame (the protocol boundary) holding a
+    triangle of peer nodes around one memory core — the same language as
+    assets/logo.svg, reduced until it survives 16x16.
+
+    WHY <style> RATHER THAN fill= ATTRIBUTES
+    An SVG referenced from <link rel="icon"> is rendered as its own document,
+    so its internal stylesheet — including @media (prefers-color-scheme) — is
+    live. That lets one file answer both browser themes: on light chrome the
+    mark sits on a pale plate in the darkened brand hues, on dark chrome it
+    sits on the deep navy ground in the bright ones. Browsers that ignore the
+    media query still get the light palette, which is legible on both.
+
+    Colour values are copied from css/tokens.css (light palette, then the dark
+    palette). A separate file cannot read custom properties from the page, so
+    these are the one sanctioned place in public/ where literals appear; if the
+    palette changes, these eight values change with it.
+
+    LEGIBILITY BUDGET AT 16px
+    No stroke below 1.5 units, no glyph below 2 units across, four shape kinds
+    total, no text, no filters (a blur at 16px is mud), no gradients (they
+    band on a 16px raster).
+  -->
+  <style>
+    :root {
+      --plate: #eef3fb;
+      --frame: #0b5fa8;
+      --link: #0b5fa8;
+      --node-a: #0b5fa8;
+      --node-b: #0a6e80;
+      --core: #7326c4;
+      --core-ring: #eef3fb;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --plate: #050a14;
+        --frame: #4facfe;
+        --link: #4facfe;
+        --node-a: #4facfe;
+        --node-b: #06b6d4;
+        --core: #a855f7;
+        --core-ring: #050a14;
+      }
+    }
+
+    .plate {
+      fill: var(--plate);
+    }
+
+    .frame {
+      fill: none;
+      stroke: var(--frame);
+      stroke-width: 1.8;
+      stroke-linejoin: round;
+      opacity: 0.9;
+    }
+
+    .link {
+      fill: none;
+      stroke: var(--link);
+      stroke-width: 1.6;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      opacity: 0.55;
+    }
+
+    .node-a {
+      fill: var(--node-a);
+    }
+
+    .node-b {
+      fill: var(--node-b);
+    }
+
+    .core {
+      fill: var(--core);
+      stroke: var(--core-ring);
+      stroke-width: 1.2;
+    }
+  </style>
+
+  <!-- Rounded plate, so the mark reads as an app icon rather than floating. -->
+  <rect class="plate" width="32" height="32" rx="7" />
+
+  <!-- Protocol boundary: the pointy-top hexagon from the logo. -->
+  <polygon class="frame" points="16,2.6 28.2,9.3 28.2,22.7 16,29.4 3.8,22.7 3.8,9.3" />
+
+  <!-- Mesh: three peers joined to each other and to the memory core. -->
+  <path class="link" d="M16 8.4 L24 21 L8 21 Z M16 8.4 V16 M8 21 L16 16 M24 21 L16 16" />
+
+  <circle class="node-a" cx="16" cy="8.4" r="2.5" />
+  <circle class="node-b" cx="8" cy="21" r="2.5" />
+  <circle class="node-b" cx="24" cy="21" r="2.5" />
+
+  <!-- The memory core: larger, violet, ringed in the plate colour so it stays
+       separate from the links crossing behind it even at 16px. -->
+  <circle class="core" cx="16" cy="16" r="3.2" />
+</svg>

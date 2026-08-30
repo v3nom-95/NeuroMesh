@@ -1,0 +1,15 @@
+{
+  "access.grantAccess": 191383,
+  "identity.registerAgent": 170858,
+  "identity.registerAgentFor": 203191,
+  "identity.rotateKey": 46248,
+  "ledger.commitMemory.genesis": 280950,
+  "ledger.commitMemory.withParent": 352333,
+  "ledger.commitMemoryFor": 314201,
+  "ledger.revokeMemory": 50094,
+  "reputation.endorseAgent.first": 314432,
+  "reputation.endorseAgent.subsequent": 236754,
+  "reputation.reportAgent": 270640,
+  "reputation.revokeEndorsement": 161300,
+  "reputation.settle": 41168
+}

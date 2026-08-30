@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 500" width="960" height="500"
+     role="img" aria-labelledby="nmt-t nmt-d" preserveAspectRatio="xMidYMid meet">
+  <title id="nmt-t">NeuroMesh time decay</title>
+  <desc id="nmt-d">Two panels. Panel A, implemented: the off-chain retrieval recency weight, two to the power minus age over a 180 day half-life, falling from 1.00 at day 0 to 0.50 at day 180 and 0.0625 at day 720. Panel B: the on-chain DecayMath decay factor, a staircase quantised to one sixteenth of a half-life, plotted against the true exponential curve. Because the exponent is floored, the staircase sits above the true curve by up to 4.43 percent, so scores decay more slowly than documented.</desc>
+  <defs>
+    <linearGradient id="nmt-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020c1b"/>
+      <stop offset="100%" stop-color="#03080f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="960" height="500" fill="url(#nmt-bg)"/>
+  <rect x="0.5" y="0.5" width="959" height="499" fill="none" stroke="#1e293b"/>
+  <text x="70" y="30" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="14" font-weight="700" fill="#e6edf7">Time decay &#8212; retrieval weight and on-chain decay factor</text>
+  <g>
+  <text x="70" y="54" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#4facfe">A. off-chain retrieval &#8212; implemented</text>
+    <line x1="70" y1="360" x2="450" y2="360" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="364" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.00</text>
+    <line x1="70" y1="287.5" x2="450" y2="287.5" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="291.5" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.25</text>
+    <line x1="70" y1="215" x2="450" y2="215" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="219" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.50</text>
+    <line x1="70" y1="142.5" x2="450" y2="142.5" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="146.5" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.75</text>
+    <line x1="70" y1="70" x2="450" y2="70" stroke="#1e293b" stroke-width="1"/>
+  <text x="60" y="74" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">1.00</text>
+    <line x1="70" y1="70" x2="70" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="70" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0</text>
+    <line x1="165" y1="70" x2="165" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="165" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">180</text>
+    <line x1="260" y1="70" x2="260" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="260" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">360</text>
+    <line x1="355" y1="70" x2="355" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="355" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">540</text>
+    <line x1="450" y1="70" x2="450" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="450" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">720</text>
+    <polyline points="70,70 77.92,86.28 85.83,101.64 93.75,116.14 101.67,129.83 109.58,142.75 117.5,154.94 125.42,166.45 133.33,177.31 141.25,187.56 149.17,197.24 157.08,206.38 165,215 172.92,223.14 180.83,230.82 188.75,238.07 196.67,244.91 204.58,251.37 212.5,257.47 220.42,263.22 228.33,268.66 236.25,273.78 244.17,278.62 252.08,283.19 260,287.5 267.92,291.57 275.83,295.41 283.75,299.04 291.67,302.46 299.58,305.69 307.5,308.73 315.42,311.61 323.33,314.33 331.25,316.89 339.17,319.31 347.08,321.59 355,323.75 362.92,325.78 370.83,327.7 378.75,329.52 386.67,331.23 394.58,332.84 402.5,334.37 410.42,335.81 418.33,337.16 426.25,338.45 434.17,339.66 442.08,340.8 450,341.88" fill="none" stroke="#4facfe" stroke-width="2.4"/>
+    <line x1="70" y1="215" x2="165" y2="215" stroke="#34d399" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <line x1="165" y1="215" x2="165" y2="360" stroke="#34d399" stroke-width="1.2" stroke-dasharray="5 4"/>
+    <circle cx="165" cy="215" r="4" fill="#34d399"/>
+  <text x="175" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#34d399">half-life 180 d</text>
+  <text x="260" y="396" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">age of memory (days)</text>
+    <text transform="translate(30 215) rotate(-90)" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">weight</text>
+  </g>
+  <g>
+  <text x="540" y="54" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="12" font-weight="700" fill="#f59e0b">B. on-chain DecayMath &#8212; quantised</text>
+    <line x1="540" y1="70" x2="920" y2="70" stroke="#1e293b" stroke-width="1"/>
+  <text x="530" y="74" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">1.00</text>
+    <line x1="540" y1="166.67" x2="920" y2="166.67" stroke="#1e293b" stroke-width="1"/>
+  <text x="530" y="170.67" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.75</text>
+    <line x1="540" y1="263.33" x2="920" y2="263.33" stroke="#1e293b" stroke-width="1"/>
+  <text x="530" y="267.33" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.50</text>
+    <line x1="540" y1="360" x2="920" y2="360" stroke="#1e293b" stroke-width="1"/>
+  <text x="530" y="364" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.25</text>
+    <line x1="540" y1="70" x2="540" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="540" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.0</text>
+    <line x1="635" y1="70" x2="635" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="635" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.5</text>
+    <line x1="730" y1="70" x2="730" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="730" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">1.0</text>
+    <line x1="825" y1="70" x2="825" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="825" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">1.5</text>
+    <line x1="920" y1="70" x2="920" y2="360" stroke="#1e293b" stroke-width="1" stroke-opacity="0.5"/>
+  <text x="920" y="378" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">2.0</text>
+    <polyline points="540,70 551.88,70 551.88,86.39 563.75,86.39 563.75,102.09 575.63,102.09 575.63,117.12 587.5,117.12 587.5,131.52 599.38,131.52 599.38,145.31 611.25,145.31 611.25,158.51 623.13,158.51 623.13,171.15 635,171.15 635,183.25 646.88,183.25 646.88,194.84 658.75,194.84 658.75,205.94 670.63,205.94 670.63,216.57 682.5,216.57 682.5,226.75 694.38,226.75 694.38,236.5 706.25,236.5 706.25,245.84 718.13,245.84 718.13,254.77 730,254.77 730,263.33 741.88,263.33 741.88,271.53 753.75,271.53 753.75,279.38 765.63,279.38 765.63,286.9 777.5,286.9 777.5,294.09 789.38,294.09 789.38,300.99 801.25,300.99 801.25,307.59 813.13,307.59 813.13,313.91 825,313.91 825,319.96 836.88,319.96 836.88,325.76 848.75,325.76 848.75,331.31 860.63,331.31 860.63,336.62 872.5,336.62 872.5,341.71 884.38,341.71 884.38,346.58 896.25,346.58 896.25,351.25 908.13,351.25 908.13,355.72 920,355.72 920,360 920,360" fill="none" stroke="#f59e0b" stroke-width="2"/>
+    <polyline points="540,70 542.38,73.34 544.75,76.64 547.13,79.92 549.5,83.17 551.88,86.39 554.25,89.59 556.63,92.75 559,95.89 561.38,99.01 563.75,102.09 566.13,105.15 568.5,108.18 570.88,111.19 573.25,114.17 575.63,117.12 578,120.05 580.38,122.96 582.75,125.84 585.13,128.69 587.5,131.52 589.88,134.33 592.25,137.11 594.63,139.86 597,142.6 599.38,145.31 601.75,147.99 604.13,150.65 606.5,153.29 608.88,155.91 611.25,158.51 613.63,161.08 616,163.63 618.38,166.16 620.75,168.66 623.13,171.15 625.5,173.61 627.88,176.05 630.25,178.47 632.63,180.87 635,183.25 637.38,185.61 639.75,187.95 642.13,190.27 644.5,192.57 646.88,194.84 649.25,197.1 651.63,199.34 654,201.56 656.38,203.76 658.75,205.94 661.13,208.11 663.5,210.25 665.88,212.38 668.25,214.48 670.63,216.57 673,218.65 675.38,220.7 677.75,222.73 680.13,224.75 682.5,226.75 684.88,228.74 687.25,230.7 689.63,232.65 692,234.58 694.38,236.5 696.75,238.4 699.13,240.28 701.5,242.15 703.88,244 706.25,245.84 708.63,247.65 711,249.46 713.38,251.24 715.75,253.02 718.13,254.77 720.5,256.52 722.88,258.24 725.25,259.95 727.63,261.65 730,263.33 732.38,265 734.75,266.65 737.13,268.29 739.5,269.92 741.88,271.53 744.25,273.13 746.63,274.71 749,276.28 751.38,277.84 753.75,279.38 756.13,280.91 758.5,282.42 760.88,283.93 763.25,285.42 765.63,286.9 768,288.36 770.38,289.81 772.75,291.25 775.13,292.68 777.5,294.09 779.88,295.5 782.25,296.89 784.63,298.26 787,299.63 789.38,300.99 791.75,302.33 794.13,303.66 796.5,304.98 798.88,306.29 801.25,307.59 803.63,308.87 806,310.15 808.38,311.41 810.75,312.66 813.13,313.91 815.5,315.14 817.88,316.36 820.25,317.57 822.63,318.77 825,319.96 827.38,321.14 829.75,322.31 832.13,323.47 834.5,324.62 836.88,325.76 839.25,326.88 841.63,328 844,329.11 846.38,330.21 848.75,331.31 851.13,332.39 853.5,333.46 855.88,334.52 858.25,335.58 860.63,336.62 863,337.66 865.38,338.68 867.75,339.7 870.13,340.71 872.5,341.71 874.88,342.7 877.25,343.68 879.63,344.66 882,345.63 884.38,346.58 886.75,347.53 889.13,348.47 891.5,349.41 893.88,350.33 896.25,351.25 898.63,352.16 901,353.06 903.38,353.96 905.75,354.84 908.13,355.72 910.5,356.59 912.88,357.45 915.25,358.31 917.63,359.16 920,360" fill="none" stroke="#94a3b8" stroke-width="1.6" stroke-dasharray="5 4"/>
+    <line x1="623.12" y1="158.51" x2="623.12" y2="171.15" stroke="#f87171" stroke-width="2"/>
+    <circle cx="623.12" cy="158.51" r="3" fill="#f87171"/>
+    <circle cx="623.12" cy="171.15" r="3" fill="#f87171"/>
+  <text x="633.12" y="152.51" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#f87171">max +4.43% (2^(1/16) &#8722; 1)</text>
+  <text x="730" y="396" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">elapsed / half-life</text>
+  </g>
+  <line x1="495" y1="46" x2="495" y2="374" stroke="#1e293b" stroke-width="1"/>
+  <line x1="70" y1="420" x2="92" y2="420" stroke="#4facfe" stroke-width="2.4"/>
+  <text x="100" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">recency weight 2^(&#8722;age / 180 d)</text>
+  <line x1="400" y1="420" x2="422" y2="420" stroke="#f59e0b" stroke-width="2.4"/>
+  <text x="430" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">DecayMath (quantised)</text>
+  <line x1="660" y1="420" x2="682" y2="420" stroke="#94a3b8" stroke-width="2.4" stroke-dasharray="5 4"/>
+  <text x="690" y="424" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">true exponential</text>
+  <text x="40" y="456" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">A: score = similarity &#215; (0.2 + 0.8 &#215; tau^0.5) &#215; 2^(&#8722;age/180 d), tau = reputation in [0,1] &#8212; src/protocol/similarity.js</text>
+  <text x="40" y="478" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#f59e0b" fill-opacity="0.85">B: DecayMath.sol floors the exponent into a 1/16 half-life bucket, so the applied factor sits ABOVE the true curve &#8212; decay is slower than documented.</text>
+
+</svg>

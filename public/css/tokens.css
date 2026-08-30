@@ -1,0 +1,391 @@
+/**
+ * NeuroMesh — Layer 0: design tokens.
+ *
+ * The single source of truth for the visual language. Nothing above this layer
+ * may contain a raw colour, a raw pixel spacing, or a raw duration; every other
+ * stylesheet and every chart in `js/charts.js` reads these custom properties.
+ *
+ * Theme resolution (three states: system / light / dark):
+ *   1. `:root`                            -> the complete LIGHT palette plus
+ *                                            every non-colour token.
+ *   2. `@media (prefers-color-scheme: dark)`
+ *      `:root:not([data-theme="light"])`  -> DARK palette for system-dark users
+ *                                            who have not explicitly opted out.
+ *   3. `:root[data-theme="dark"]`         -> DARK palette for an explicit
+ *                                            choice, so the toggle also wins on
+ *                                            a light OS.
+ * Blocks 2 and 3 are byte-identical on purpose. No colour is ever defined only
+ * inside a media query or an attribute block, so no token can resolve to
+ * nothing in any combination of OS preference and user choice.
+ *
+ * Contrast contract (verified numerically before these values were committed):
+ *   - text-primary    >= 13:1  on canvas / surface / surface-2 / elevated
+ *   - text-secondary  >=  7:1  on the same four grounds
+ *   - text-muted      >= 4.5:1 on the same four grounds
+ *   - every `--*-fg`  >= 4.5:1 on those grounds AND on its paired `--*-soft`
+ *   - --text-on-brand >= 4.5:1 on --brand-bg, --brand-bg-hover, --accent-bg
+ *   - --border-default, --border-strong, --focus-ring and every `--chart-N`
+ *     >= 3:1 on canvas and surface (WCAG 2.2 1.4.11, non-text contrast)
+ *
+ * Brand: derived from assets/logo.svg — cyan #4facfe, violet #a855f7, teal
+ * #06b6d4 over a deep navy-black (#050a14) ground. The light theme darkens
+ * those same hues until they pass AA rather than abandoning the brand.
+ */
+
+:root {
+  color-scheme: light dark;
+
+  /* ------------------------------------------------------------------ *
+   * Typeface stacks — system only. No webfont is downloaded, so the
+   * console renders identically offline and needs no external origin.
+   * ------------------------------------------------------------------ */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial,
+    'Noto Sans', sans-serif;
+  --font-mono:
+    ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, 'Liberation Mono', 'Courier New',
+    monospace;
+
+  /* Type scale -------------------------------------------------------- */
+  --fs-3xs: 0.6875rem;
+  --fs-2xs: 0.75rem;
+  --fs-xs: 0.8125rem;
+  --fs-sm: 0.875rem;
+  --fs-md: 1rem;
+  --fs-lg: 1.125rem;
+  --fs-xl: 1.375rem;
+  --fs-2xl: 1.75rem;
+  --fs-3xl: clamp(1.75rem, 1.25rem + 1.8vw, 2.5rem);
+
+  --lh-tight: 1.2;
+  --lh-snug: 1.35;
+  --lh-normal: 1.55;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
+  --ls-tight: -0.015em;
+  --ls-normal: 0;
+  --ls-wide: 0.06em;
+
+  /* Spacing — 4px base ------------------------------------------------ */
+  --sp-0: 0;
+  --sp-1: 0.25rem;
+  --sp-2: 0.5rem;
+  --sp-3: 0.75rem;
+  --sp-4: 1rem;
+  --sp-5: 1.25rem;
+  --sp-6: 1.5rem;
+  --sp-8: 2rem;
+  --sp-10: 2.5rem;
+  --sp-12: 3rem;
+  --sp-16: 4rem;
+
+  /* Radii ------------------------------------------------------------- */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 10px;
+  --r-lg: 14px;
+  --r-xl: 20px;
+  --r-full: 999px;
+
+  /* Motion ------------------------------------------------------------ */
+  --dur-1: 120ms;
+  --dur-2: 200ms;
+  --dur-3: 320ms;
+  --ease-out: cubic-bezier(0.2, 0.8, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Layout ------------------------------------------------------------ */
+  --sidebar-w: 248px;
+  --topbar-h: 56px;
+  /* Height of the mobile bottom bar the sidebar collapses into below 60rem. */
+  --bottombar-h: 62px;
+  --content-max: 1440px;
+  --gutter: clamp(1rem, 0.5rem + 1.6vw, 2rem);
+  --hairline: 1px;
+
+  /* Z-index layers ---------------------------------------------------- */
+  --z-base: 0;
+  --z-sticky: 100;
+  --z-nav: 200;
+  --z-modal: 1000;
+  --z-toast: 1100;
+
+  /* Focus ------------------------------------------------------------- */
+  --focus-width: 2px;
+  --focus-offset: 2px;
+
+  /* =================================================================== *
+   * LIGHT PALETTE — also the fallback for every theme combination.
+   * =================================================================== */
+
+  /* Surfaces */
+  --bg-canvas: #f4f6fb;
+  --bg-surface: #ffffff;
+  --bg-surface-2: #eef1f8;
+  --bg-inset: #e7ebf4;
+  --bg-elevated: #ffffff;
+
+  /* Borders — `subtle` is decorative; `default` and `strong` meet 3:1 */
+  --border-subtle: #dfe4ee;
+  --border-default: #7f8ca0;
+  --border-strong: #5c6779;
+
+  /* Text */
+  --text-primary: #0a1220;
+  --text-secondary: #3b4759;
+  --text-muted: #556274;
+  --text-on-brand: #ffffff;
+
+  /* Brand — the cyan family, darkened until it passes AA on white */
+  --brand-fg: #0b5fa8;
+  --brand-bg: #0b5fa8;
+  --brand-bg-hover: #094e8c;
+  --brand-soft: #e4f0fb;
+
+  /* Accent — the violet family */
+  --accent-fg: #7326c4;
+  --accent-bg: #7326c4;
+  --accent-bg-hover: #5e1da3;
+  --accent-soft: #f2e8fd;
+
+  /* Teal — third brand hue; reserved for IPFS / storage semantics */
+  --teal-fg: #0a6e80;
+  --teal-soft: #dff1f4;
+
+  /* Status */
+  --success-fg: #046b4f;
+  --success-soft: #e1f4ee;
+  --warn-fg: #8a4b04;
+  --warn-soft: #fbf0dc;
+  --danger-fg: #b4231d;
+  --danger-soft: #fce9e8;
+  --info-fg: #0d5ac9;
+  --info-soft: #e6eefd;
+
+  /* Interaction */
+  --focus-ring: #0b5fa8;
+  --overlay-hover: rgba(10, 18, 32, 0.05);
+  --overlay-active: rgba(10, 18, 32, 0.09);
+  --scrim: rgba(10, 18, 32, 0.45);
+
+  /* Elevation */
+  --shadow-1: 0 1px 2px rgba(10, 18, 32, 0.06), 0 1px 1px rgba(10, 18, 32, 0.04);
+  --shadow-2: 0 4px 12px rgba(10, 18, 32, 0.08), 0 1px 3px rgba(10, 18, 32, 0.06);
+  --shadow-3: 0 16px 40px rgba(10, 18, 32, 0.14), 0 4px 12px rgba(10, 18, 32, 0.08);
+
+  /* Chart categorical — six series, each >= 3:1 on canvas and surface */
+  --chart-1: #1e63c8;
+  --chart-2: #7c3aed;
+  --chart-3: #0e7490;
+  --chart-4: #b45309;
+  --chart-5: #047857;
+  --chart-6: #be185d;
+
+  /* Chart sequential ("heat"), low -> high, cyan/indigo ramp */
+  --heat-0: #f2f6fd;
+  --heat-1: #d9e6f8;
+  --heat-2: #b7d2f1;
+  --heat-3: #8fb7e6;
+  --heat-4: #6394d4;
+  --heat-5: #3a6cb4;
+  --heat-6: #1b3f7c;
+
+  /* Chart diverging (cosine -1 .. +1), red <-> blue, CVD-safe */
+  --div-0: #b2182b;
+  --div-1: #ef8a62;
+  --div-2: #fddbc7;
+  --div-3: #eef1f8;
+  --div-4: #d1e5f0;
+  --div-5: #67a9cf;
+  --div-6: #2166ac;
+
+  /* Chart furniture */
+  --chart-axis: var(--text-muted);
+  --chart-grid: var(--border-subtle);
+  --chart-marker: var(--text-primary);
+  --chart-surface: var(--bg-surface);
+}
+
+/* An explicit light choice on a dark OS: the palette above already applies,
+   but the UA widget colour scheme has to be pinned too. */
+:root[data-theme='light'] {
+  color-scheme: light;
+}
+
+/* ==================================================================== *
+ * DARK PALETTE — system preference, unless the user chose light.
+ * ==================================================================== */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    color-scheme: dark;
+
+    --bg-canvas: #050a14;
+    --bg-surface: #0b1220;
+    --bg-surface-2: #111a2b;
+    --bg-inset: #04080f;
+    --bg-elevated: #16223a;
+
+    --border-subtle: #1c2537;
+    --border-default: #606f8a;
+    --border-strong: #8494ad;
+
+    --text-primary: #e9eff9;
+    --text-secondary: #a8b7cd;
+    --text-muted: #8d9db6;
+    --text-on-brand: #03101c;
+
+    --brand-fg: #4facfe;
+    --brand-bg: #4facfe;
+    --brand-bg-hover: #7cc3fe;
+    --brand-soft: #0c2237;
+
+    --accent-fg: #c79bff;
+    --accent-bg: #a855f7;
+    --accent-bg-hover: #b975f9;
+    --accent-soft: #1f1330;
+
+    --teal-fg: #3ed8e8;
+    --teal-soft: #062429;
+
+    --success-fg: #4ade9b;
+    --success-soft: #06251c;
+    --warn-fg: #fbbf4d;
+    --warn-soft: #2a1f08;
+    --danger-fg: #ff8a85;
+    --danger-soft: #2b1210;
+    --info-fg: #8fc6ff;
+    --info-soft: #0b1b33;
+
+    --focus-ring: #7cc3fe;
+    --overlay-hover: rgba(233, 239, 249, 0.06);
+    --overlay-active: rgba(233, 239, 249, 0.11);
+    --scrim: rgba(2, 5, 11, 0.68);
+
+    --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+    --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.55);
+    --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.7);
+
+    --chart-1: #4facfe;
+    --chart-2: #a855f7;
+    --chart-3: #22d3ee;
+    --chart-4: #fbbf24;
+    --chart-5: #34d399;
+    --chart-6: #f472b6;
+
+    --heat-0: #0a1120;
+    --heat-1: #10243f;
+    --heat-2: #133a63;
+    --heat-3: #145387;
+    --heat-4: #1c72ab;
+    --heat-5: #3593cf;
+    --heat-6: #6fb9ee;
+
+    --div-0: #e06a68;
+    --div-1: #b8494f;
+    --div-2: #6e3038;
+    --div-3: #111a2b;
+    --div-4: #22496b;
+    --div-5: #3d7cb0;
+    --div-6: #6fb0e4;
+  }
+}
+
+/* ==================================================================== *
+ * DARK PALETTE — explicit choice. Identical to the block above so the
+ * toggle wins on a light OS as well as a dark one.
+ * ==================================================================== */
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --bg-canvas: #050a14;
+  --bg-surface: #0b1220;
+  --bg-surface-2: #111a2b;
+  --bg-inset: #04080f;
+  --bg-elevated: #16223a;
+
+  --border-subtle: #1c2537;
+  --border-default: #606f8a;
+  --border-strong: #8494ad;
+
+  --text-primary: #e9eff9;
+  --text-secondary: #a8b7cd;
+  --text-muted: #8d9db6;
+  --text-on-brand: #03101c;
+
+  --brand-fg: #4facfe;
+  --brand-bg: #4facfe;
+  --brand-bg-hover: #7cc3fe;
+  --brand-soft: #0c2237;
+
+  --accent-fg: #c79bff;
+  --accent-bg: #a855f7;
+  --accent-bg-hover: #b975f9;
+  --accent-soft: #1f1330;
+
+  --teal-fg: #3ed8e8;
+  --teal-soft: #062429;
+
+  --success-fg: #4ade9b;
+  --success-soft: #06251c;
+  --warn-fg: #fbbf4d;
+  --warn-soft: #2a1f08;
+  --danger-fg: #ff8a85;
+  --danger-soft: #2b1210;
+  --info-fg: #8fc6ff;
+  --info-soft: #0b1b33;
+
+  --focus-ring: #7cc3fe;
+  --overlay-hover: rgba(233, 239, 249, 0.06);
+  --overlay-active: rgba(233, 239, 249, 0.11);
+  --scrim: rgba(2, 5, 11, 0.68);
+
+  --shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-2: 0 6px 18px rgba(0, 0, 0, 0.55);
+  --shadow-3: 0 20px 50px rgba(0, 0, 0, 0.7);
+
+  --chart-1: #4facfe;
+  --chart-2: #a855f7;
+  --chart-3: #22d3ee;
+  --chart-4: #fbbf24;
+  --chart-5: #34d399;
+  --chart-6: #f472b6;
+
+  --heat-0: #0a1120;
+  --heat-1: #10243f;
+  --heat-2: #133a63;
+  --heat-3: #145387;
+  --heat-4: #1c72ab;
+  --heat-5: #3593cf;
+  --heat-6: #6fb9ee;
+
+  --div-0: #e06a68;
+  --div-1: #b8494f;
+  --div-2: #6e3038;
+  --div-3: #111a2b;
+  --div-4: #22496b;
+  --div-5: #3d7cb0;
+  --div-6: #6fb0e4;
+}
+
+/* ==================================================================== *
+ * Increased contrast: promote every hairline to a real border, retire
+ * the muted grey, and widen the focus ring.
+ * ==================================================================== */
+@media (prefers-contrast: more) {
+  /* `:root:root` is deliberate. The two dark blocks above are
+     `:root:not([data-theme="light"])` and `:root[data-theme="dark"]`, both of
+     specificity (0,2,0). A bare `:root` here — (0,1,0) — would lose to them and
+     this whole block would silently do nothing in dark mode. Repeating `:root`
+     matches that specificity, and source order then decides in our favour. */
+  :root:root {
+    --border-subtle: var(--border-strong);
+    --border-default: var(--border-strong);
+    --text-muted: var(--text-secondary);
+    --chart-grid: var(--border-strong);
+    --focus-width: 3px;
+  }
+}

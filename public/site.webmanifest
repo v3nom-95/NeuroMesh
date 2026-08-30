@@ -1,0 +1,50 @@
+{
+  "name": "NeuroMesh Node Console",
+  "short_name": "NeuroMesh",
+  "description": "Operator console for a NeuroMesh decentralized cognitive-memory node: identity, memory ledger, cross-model semantics, reputation, and system health.",
+  "id": "/",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "any",
+  "lang": "en",
+  "dir": "ltr",
+  "theme_color": "#050a14",
+  "background_color": "#050a14",
+  "categories": ["developer", "utilities", "productivity"],
+  "icons": [
+    {
+      "src": "/icons/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Commit a memory",
+      "short_name": "Commit",
+      "description": "Embed, encrypt, pin and anchor a new memory on chain.",
+      "url": "/#/memory"
+    },
+    {
+      "name": "Semantic search",
+      "short_name": "Search",
+      "description": "Trust-weighted search across the swarm's committed memories.",
+      "url": "/#/semantic"
+    },
+    {
+      "name": "System health",
+      "short_name": "System",
+      "description": "Node readiness, chain connectivity and process metrics.",
+      "url": "/#/system"
+    }
+  ]
+}

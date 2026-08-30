@@ -1,0 +1,99 @@
+# ---------------------------------------------------------------------------
+# Dependabot configuration.
+#
+# Grouping policy: minor and patch updates are batched into a small number of
+# themed PRs so routine churn costs one review a week, while MAJOR updates
+# always arrive as their own PR - a major bump to ethers, express, hardhat or
+# the embedding runtime is a real change and must not be buried in a batch.
+#
+# Do NOT let Dependabot touch the `overrides` block in package.json. The
+# sharp/adm-zip overrides are what keep `npm audit --omit=dev` at zero
+# findings; the `audit` job in ci.yml is the tripwire if one is ever dropped.
+# ---------------------------------------------------------------------------
+version: 2
+
+updates:
+  # -------------------------------------------------------------------------
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 10
+    versioning-strategy: increase
+    labels: ["dependencies", "npm"]
+    commit-message:
+      prefix: "build(deps)"
+      prefix-development: "build(deps-dev)"
+      include: scope
+    groups:
+      # One PR for all non-breaking production dependency movement.
+      production-minor-patch:
+        applies-to: version-updates
+        dependency-type: production
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      # One PR for all non-breaking toolchain movement.
+      development-minor-patch:
+        applies-to: version-updates
+        dependency-type: development
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+      # Security fixes are grouped separately so they can be merged fast
+      # without waiting on an unrelated routine bump.
+      security-updates:
+        applies-to: security-updates
+        patterns: ["*"]
+    ignore:
+      # Majors of these are reviewed by hand, never auto-proposed in a group.
+      # @huggingface/transformers pins onnxruntime-node, whose native binaries
+      # decide whether the Docker base image can be alpine or must be glibc.
+      - dependency-name: "@huggingface/transformers"
+        update-types: ["version-update:semver-major"]
+      # ethers v6 -> v7 is an ABI-surface change across server, scripts and tests.
+      - dependency-name: "ethers"
+        update-types: ["version-update:semver-major"]
+      # Hardhat 2 -> 3 changes the config format and the plugin ecosystem.
+      - dependency-name: "hardhat"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "@nomicfoundation/hardhat-toolbox"
+        update-types: ["version-update:semver-major"]
+      # OpenZeppelin majors change contract storage layout and require redeploy.
+      - dependency-name: "@openzeppelin/contracts"
+        update-types: ["version-update:semver-major"]
+
+  # -------------------------------------------------------------------------
+  # Workflow actions are pinned by major tag, so this is what keeps them from
+  # silently rotting. It is the counterweight to not pinning by commit SHA.
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    labels: ["dependencies", "github-actions"]
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      actions-minor-patch:
+        applies-to: version-updates
+        patterns: ["*"]
+        update-types: ["minor", "patch"]
+
+  # -------------------------------------------------------------------------
+  # Tracks the node:22-bookworm-slim base image in the Dockerfile.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "06:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 3
+    labels: ["dependencies", "docker"]
+    commit-message:
+      prefix: "build(docker)"

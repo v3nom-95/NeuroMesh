@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120"
+     role="img" aria-labelledby="nml-t nml-d" preserveAspectRatio="xMidYMid meet">
+  <title id="nml-t">NeuroMesh mark</title>
+  <desc id="nml-d">The NeuroMesh mark in its light-theme palette: a hexagon outline containing six ring nodes joined to a central hub, with a pulsing ring around the hub. No background fill.</desc>
+  <defs>
+    <linearGradient id="nml-g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#1d4ed8"/>
+      <stop offset="50%" stop-color="#6d28d9"/>
+      <stop offset="100%" stop-color="#0e7490"/>
+    </linearGradient>
+  </defs>
+
+  <polygon points="60,4 111,31 111,89 60,116 9,89 9,31" fill="url(#nml-g)" fill-opacity="0.08"/>
+  <polygon points="60,4 111,31 111,89 60,116 9,89 9,31" fill="none" stroke="url(#nml-g)" stroke-width="2.5"/>
+  <polygon points="60,18 97,39 97,81 60,102 23,81 23,39" fill="none" stroke="#1d4ed8" stroke-width="1" stroke-opacity="0.35"/>
+  <g stroke="url(#nml-g)" stroke-width="1.4" stroke-opacity="0.75">
+    <line x1="60" y1="52.5" x2="60" y2="33.5"/>
+    <line x1="66.51" y1="56.28" x2="83.22" y2="46.73"/>
+    <line x1="66.51" y1="63.72" x2="83.22" y2="73.27"/>
+    <line x1="60" y1="67.5" x2="60" y2="86.5"/>
+    <line x1="53.49" y1="63.72" x2="36.78" y2="73.27"/>
+    <line x1="53.49" y1="56.28" x2="36.78" y2="46.73"/>
+  </g>
+  <g stroke="#1d4ed8" stroke-width="0.9" stroke-opacity="0.3">
+    <line x1="60" y1="28" x2="88" y2="44"/>
+    <line x1="88" y1="44" x2="88" y2="76"/>
+    <line x1="88" y1="76" x2="60" y2="92"/>
+    <line x1="60" y1="92" x2="32" y2="76"/>
+    <line x1="32" y1="76" x2="32" y2="44"/>
+    <line x1="32" y1="44" x2="60" y2="28"/>
+  </g>
+  <circle cx="60" cy="28" r="5" fill="#1d4ed8"/>
+  <circle cx="88" cy="44" r="5" fill="#6d28d9"/>
+  <circle cx="88" cy="76" r="5" fill="#0e7490"/>
+  <circle cx="60" cy="92" r="5" fill="#1d4ed8"/>
+  <circle cx="32" cy="76" r="5" fill="#6d28d9"/>
+  <circle cx="32" cy="44" r="5" fill="#0e7490"/>
+  <circle cx="60" cy="60" r="7.5" fill="url(#nml-g)"/>
+  <circle cx="60" cy="60" r="7.5" fill="none" stroke="#1d4ed8" stroke-width="1.5">
+    <animate attributeName="r" values="7.5;15;7.5" dur="2.6s" repeatCount="indefinite"/>
+    <animate attributeName="opacity" values="0.85;0;0.85" dur="2.6s" repeatCount="indefinite"/>
+  </circle>
+
+</svg>

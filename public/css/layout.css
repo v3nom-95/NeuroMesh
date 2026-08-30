@@ -1,0 +1,423 @@
+/**
+ * NeuroMesh — Layer 2: the application shell.
+ *
+ * Owns page structure only: the shell grid, the topbar, the navigation rail and
+ * its mobile collapse, the main column, and the reusable content grids. Visual
+ * treatment of the things placed into those slots lives in components.css.
+ *
+ * Depends on: css/tokens.css, css/base.css.
+ *
+ * Shape at >= 60rem                     Shape at < 60rem
+ *   +-------------------------------+     +-----------------------------+
+ *   | topbar (sticky, full width)   |     | topbar (sticky)             |
+ *   +---------+---------------------+     +-----------------------------+
+ *   | sidebar | banner-region       |     | banner-region               |
+ *   | (sticky)+---------------------+     +-----------------------------+
+ *   |         | main (max 1440px)   |     | main                        |
+ *   +---------+---------------------+     +-----------------------------+
+ *                                         | nav (fixed bottom tab bar)  |
+ *                                         +-----------------------------+
+ *
+ * Verified from 360px to 2560px. There is no fixed-width container anywhere;
+ * the old 900px `.container` cap that forced the analytics tables into
+ * horizontal scroll on a desktop monitor is gone.
+ */
+
+/* ==================================================================== *
+ * Shell grid
+ * ==================================================================== */
+
+.app-shell {
+  display: grid;
+  grid-template-columns: var(--sidebar-w) minmax(0, 1fr);
+  grid-template-rows: var(--topbar-h) auto minmax(0, 1fr);
+  grid-template-areas:
+    'topbar topbar'
+    'nav banner'
+    'nav main';
+  min-block-size: 100dvh;
+}
+
+/* ==================================================================== *
+ * Topbar
+ * ==================================================================== */
+
+.topbar {
+  grid-area: topbar;
+  position: sticky;
+  inset-block-start: 0;
+  z-index: var(--z-sticky);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  block-size: var(--topbar-h);
+  padding-inline: var(--gutter);
+  border-block-end: var(--hairline) solid var(--border-subtle);
+  background-color: color-mix(in oklab, var(--bg-surface) 82%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+/* If the browser cannot blur, fall back to an opaque bar rather than an
+   unreadable translucent one. */
+@supports not ((backdrop-filter: blur(8px)) or (-webkit-backdrop-filter: blur(8px))) {
+  .topbar {
+    background-color: var(--bg-surface);
+  }
+}
+
+.topbar__brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-inline-size: 0;
+  /* Aligns the wordmark with the sidebar rail on desktop. */
+  inline-size: calc(var(--sidebar-w) - var(--gutter));
+  flex: 0 0 auto;
+}
+
+.topbar__wordmark {
+  font-size: var(--fs-md);
+  font-weight: var(--fw-semibold);
+  letter-spacing: var(--ls-tight);
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.topbar__status {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  min-inline-size: 0;
+  overflow-x: auto;
+  scrollbar-width: none;
+  flex: 1 1 auto;
+}
+
+.topbar__status::-webkit-scrollbar {
+  display: none;
+}
+
+.topbar__actions {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-1);
+  margin-inline-start: auto;
+  flex: 0 0 auto;
+}
+
+/* ==================================================================== *
+ * Sidebar / navigation rail
+ * ==================================================================== */
+
+.sidebar {
+  grid-area: nav;
+  position: sticky;
+  inset-block-start: var(--topbar-h);
+  align-self: start;
+  max-block-size: calc(100dvh - var(--topbar-h));
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-4);
+  padding: var(--sp-4) var(--sp-3);
+  border-inline-end: var(--hairline) solid var(--border-subtle);
+  background-color: var(--bg-surface);
+}
+
+.tablist {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-1);
+}
+
+.sidebar__foot {
+  margin-block-start: auto;
+  padding-block-start: var(--sp-4);
+  border-block-start: var(--hairline) solid var(--border-subtle);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  font-size: var(--fs-2xs);
+  color: var(--text-muted);
+}
+
+/* ==================================================================== *
+ * Banner region and main column
+ * ==================================================================== */
+
+.banner-region {
+  grid-area: banner;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  inline-size: 100%;
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+.banner-region:empty {
+  display: none;
+}
+
+.app-main {
+  grid-area: main;
+  min-inline-size: 0;
+  inline-size: 100%;
+  max-inline-size: var(--content-max);
+  margin-inline: auto;
+  padding: var(--sp-6) var(--gutter) var(--sp-16);
+}
+
+.app-main:focus {
+  outline: none;
+}
+
+.view {
+  min-inline-size: 0;
+}
+
+.view__mount {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-6);
+  min-inline-size: 0;
+}
+
+.section-head {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--sp-3);
+}
+
+.section-head__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-2);
+}
+
+/* ==================================================================== *
+ * Content grids
+ * ==================================================================== */
+
+.grid {
+  display: grid;
+  gap: var(--sp-4);
+  min-inline-size: 0;
+}
+
+.grid > * {
+  min-inline-size: 0;
+}
+
+.grid--kpi {
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+}
+
+.grid--2 {
+  grid-template-columns: repeat(auto-fit, minmax(340px, 1fr));
+}
+
+.grid--3 {
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+}
+
+.grid--agents {
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.grid--sidebar-right {
+  grid-template-columns: minmax(0, 2fr) minmax(280px, 1fr);
+}
+
+@media (max-width: 68rem) {
+  .grid--sidebar-right {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==================================================================== *
+ * Container queries
+ *
+ * Cards reflow to THEIR OWN measured width, not the viewport's, so a KPI
+ * tile behaves identically in a 4-up grid, a 2-up grid and a modal.
+ * ==================================================================== */
+
+.card {
+  container-type: inline-size;
+  container-name: card;
+}
+
+@container card (min-width: 34rem) {
+  .card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--sp-3);
+  }
+
+  .stat__row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--sp-3);
+  }
+}
+
+@container card (min-width: 48rem) {
+  .memory-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto auto auto;
+    align-items: center;
+    gap: var(--sp-4);
+  }
+}
+
+/* charts.js reads this element's measured inline size to choose tick density,
+   so it must establish a size container and fill its parent. */
+.chart-frame {
+  container-type: inline-size;
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+/* Wide content never widens the page — it scrolls inside its own box. */
+.scroll-x {
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  max-inline-size: 100%;
+}
+
+/* ==================================================================== *
+ * Collapse: sidebar rail -> fixed bottom tab bar (< 60rem / 960px)
+ * ==================================================================== */
+
+@media (max-width: 60rem) {
+  .app-shell {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: var(--topbar-h) auto minmax(0, 1fr);
+    grid-template-areas:
+      'topbar'
+      'banner'
+      'main';
+  }
+
+  .topbar__brand {
+    inline-size: auto;
+  }
+
+  .sidebar {
+    position: fixed;
+    inset-block-end: 0;
+    inset-inline: 0;
+    z-index: var(--z-nav);
+    align-self: auto;
+    max-block-size: none;
+    overflow: visible;
+    flex-direction: row;
+    gap: 0;
+    padding: 0 max(var(--sp-1), env(safe-area-inset-left)) env(safe-area-inset-bottom);
+    border-inline-end: 0;
+    border-block-start: var(--hairline) solid var(--border-subtle);
+    box-shadow: var(--shadow-2);
+  }
+
+  .tablist {
+    flex-direction: row;
+    inline-size: 100%;
+    gap: 0;
+    overflow-x: auto;
+    scroll-snap-type: x proximity;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+
+  .tablist::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Five tabs share the bar; each still honours a 44px minimum touch target. */
+  .tablist > .tab {
+    flex: 1 0 auto;
+    min-inline-size: 64px;
+    min-block-size: var(--bottombar-h);
+    scroll-snap-align: center;
+  }
+
+  .sidebar__foot {
+    display: none;
+  }
+
+  /* Clear the fixed bar so the last row of content is never trapped under it. */
+  .app-main {
+    padding-block-end: calc(var(--bottombar-h) + env(safe-area-inset-bottom) + var(--sp-8));
+  }
+}
+
+/* ==================================================================== *
+ * Narrow phones (< 30rem / 480px)
+ * ==================================================================== */
+
+@media (max-width: 30rem) {
+  :root {
+    --gutter: 0.75rem;
+  }
+
+  /* Status pills lose their text and keep their icon; the label survives as
+     the pill's accessible name, so nothing is lost to a screen reader. */
+  .topbar__status .pill__label {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .topbar__wordmark {
+    font-size: var(--fs-sm);
+  }
+
+  .grid--2,
+  .grid--3,
+  .grid--agents {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+/* ==================================================================== *
+ * Very wide displays: hold the reading measure, widen the rail slightly.
+ * ==================================================================== */
+
+@media (min-width: 120rem) {
+  .app-shell {
+    --sidebar-w: 280px;
+  }
+}
+
+/* ==================================================================== *
+ * Print: drop the chrome, keep the content.
+ * ==================================================================== */
+
+@media print {
+  .topbar,
+  .sidebar,
+  .toast-region,
+  .skip-link {
+    display: none !important;
+  }
+
+  .app-shell {
+    display: block;
+  }
+
+  .app-main {
+    max-inline-size: none;
+    padding: 0;
+  }
+}

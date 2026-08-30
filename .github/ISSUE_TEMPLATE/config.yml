@@ -1,0 +1,24 @@
+# Blank issues are disabled so that every report arrives with the structured
+# fields the maintainers need - and, critically, so that nobody opens a free-form
+# public issue about a vulnerability.
+blank_issues_enabled: false
+
+contact_links:
+  - name: Report a security vulnerability (private)
+    url: https://github.com/v3nom-95/NeuroMesh/security/advisories/new
+    about: >-
+      Never report a vulnerability in a public issue. This project handles Ethereum private keys
+      and IPFS credentials. Open a private GitHub Security Advisory - the process, scope and
+      disclosure timeline are in SECURITY.md.
+
+  - name: Security policy (SECURITY.md)
+    url: https://github.com/v3nom-95/NeuroMesh/blob/main/SECURITY.md
+    about: Supported versions, reporting process, disclosure timeline, and key-handling rules.
+
+  - name: Questions and design discussion
+    url: https://github.com/v3nom-95/NeuroMesh/discussions
+    about: Usage questions, protocol design debate, and anything that is not yet a concrete bug.
+
+  - name: Contributing guide
+    url: https://github.com/v3nom-95/NeuroMesh/blob/main/CONTRIBUTING.md
+    about: Setup, the local check suite, commit conventions, and what a reviewable PR looks like.

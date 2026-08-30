@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 500" width="980" height="500"
+     role="img" aria-labelledby="nmb-t nmb-d" preserveAspectRatio="xMidYMid meet">
+  <title id="nmb-t">NeuroMesh measured latency</title>
+  <desc id="nmb-d">Horizontal log-scale bar chart of measured milliseconds. all-MiniLM-L6-v2 embedding at 384 dimensions, p50 2.853 and p95 12.495 over 40 runs. all-distilroberta-v1 at 768 dimensions, p50 6.788 and p95 10.28 over 40 runs. Johnson-Lindenstrauss projection 768 to 384, p50 0.195 and p95 0.281 over 200 runs. HKDF plus AES-256-GCM envelope seal, p50 0.027 and p95 0.058 over 200 runs. The superseded PBKDF2 100k key derivation, p50 53.135 and p95 83.21 over 20 runs. Each row also shows a min to max whisker. Node v22.13.1 on win32, cold model load excluded.</desc>
+  <defs>
+    <linearGradient id="nmb-bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#020c1b"/>
+      <stop offset="100%" stop-color="#03080f"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="980" height="500" fill="url(#nmb-bg)"/>
+  <rect x="0.5" y="0.5" width="979" height="499" fill="none" stroke="#1e293b"/>
+  <text x="24" y="36" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="15" font-weight="700" fill="#e6edf7">Measured latency &#8212; local pipeline stages</text>
+  <text x="24" y="56" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">milliseconds, log scale &#183; Node v22.13.1 &#183; win32 &#183; steady state, cold model load excluded (MiniLM 197.3 ms, distilRoBERTa 665.5 ms) &#183; CPU model not recorded</text>
+  <rect x="640" y="30" width="16" height="10" rx="2" fill="#94a3b8" fill-opacity="0.9"/>
+  <text x="662" y="39" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50</text>
+  <rect x="710" y="30" width="16" height="10" rx="2" fill="#94a3b8" fill-opacity="0.28" stroke="#94a3b8" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="732" y="39" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p95</text>
+  <line x1="780" y1="35" x2="806" y2="35" stroke="#94a3b8" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="812" y="39" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">min&#8211;max</text>
+  <line x1="250" y1="96" x2="250" y2="440" stroke="#1e293b" stroke-width="1"/>
+  <text x="250" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.01</text>
+  <line x1="400" y1="96" x2="400" y2="440" stroke="#1e293b" stroke-width="1"/>
+  <text x="400" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">0.1</text>
+  <line x1="550" y1="96" x2="550" y2="440" stroke="#1e293b" stroke-width="1"/>
+  <text x="550" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">1</text>
+  <line x1="700" y1="96" x2="700" y2="440" stroke="#1e293b" stroke-width="1"/>
+  <text x="700" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">10</text>
+  <line x1="850" y1="96" x2="850" y2="440" stroke="#1e293b" stroke-width="1"/>
+  <text x="850" y="88" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">100</text>
+  <text x="238" y="116" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#e6edf7">all-MiniLM-L6-v2</text>
+  <text x="238" y="132" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">embed 384d &#183; n=40</text>
+  <rect x="250" y="104" width="368.3" height="15" rx="3" fill="#4facfe" fill-opacity="0.9"/>
+  <rect x="250" y="123" width="464.51" height="15" rx="3" fill="#4facfe" fill-opacity="0.28" stroke="#4facfe" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="626.3" y="116" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50 2.853 ms</text>
+  <text x="722.51" y="135" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">p95 12.495 ms</text>
+  <line x1="604.03" y1="148" x2="723.83" y2="148" stroke="#4facfe" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="604.03" y1="144" x2="604.03" y2="152" stroke="#4facfe" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="723.83" y1="144" x2="723.83" y2="152" stroke="#4facfe" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="731.83" y="152" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9" fill="#64748b">min 2.292 &#183; max 14.417</text>
+  <text x="238" y="188" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#e6edf7">all-distilroberta-v1</text>
+  <text x="238" y="204" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">embed 768d &#183; n=40</text>
+  <rect x="250" y="176" width="424.76" height="15" rx="3" fill="#06b6d4" fill-opacity="0.9"/>
+  <rect x="250" y="195" width="451.8" height="15" rx="3" fill="#06b6d4" fill-opacity="0.28" stroke="#06b6d4" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="682.76" y="188" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50 6.788 ms</text>
+  <text x="709.8" y="207" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">p95 10.28 ms</text>
+  <line x1="666.78" y1="220" x2="712.2" y2="220" stroke="#06b6d4" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="666.78" y1="216" x2="666.78" y2="224" stroke="#06b6d4" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="712.2" y1="216" x2="712.2" y2="224" stroke="#06b6d4" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="720.2" y="224" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9" fill="#64748b">min 6.005 &#183; max 12.06</text>
+  <text x="238" y="260" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#e6edf7">JL projection 768&#8594;384</text>
+  <text x="238" y="276" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">seeded Achlioptas &#183; n=200</text>
+  <rect x="250" y="248" width="193.51" height="15" rx="3" fill="#34d399" fill-opacity="0.9"/>
+  <rect x="250" y="267" width="217.31" height="15" rx="3" fill="#34d399" fill-opacity="0.28" stroke="#34d399" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="451.51" y="260" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50 0.195 ms</text>
+  <text x="475.31" y="279" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">p95 0.281 ms</text>
+  <line x1="442.83" y1="292" x2="701.4" y2="292" stroke="#34d399" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="442.83" y1="288" x2="442.83" y2="296" stroke="#34d399" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="701.4" y1="288" x2="701.4" y2="296" stroke="#34d399" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="709.4" y="296" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9" fill="#64748b">min 0.193 &#183; max 10.218</text>
+  <text x="238" y="332" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#e6edf7">HKDF + AES-256-GCM</text>
+  <text x="238" y="348" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">envelope seal &#183; n=200</text>
+  <rect x="250" y="320" width="64.7" height="15" rx="3" fill="#a855f7" fill-opacity="0.9"/>
+  <rect x="250" y="339" width="114.51" height="15" rx="3" fill="#a855f7" fill-opacity="0.28" stroke="#a855f7" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="322.7" y="332" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50 0.027 ms</text>
+  <text x="372.51" y="351" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">p95 0.058 ms</text>
+  <line x1="288.29" y1="364" x2="532.8" y2="364" stroke="#a855f7" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="288.29" y1="360" x2="288.29" y2="368" stroke="#a855f7" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="532.8" y1="360" x2="532.8" y2="368" stroke="#a855f7" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="540.8" y="368" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9" fill="#64748b">min 0.018 &#183; max 0.768</text>
+  <text x="238" y="404" text-anchor="end" font-family="ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif" font-size="11.5" font-weight="600" fill="#e6edf7">PBKDF2-100k (replaced)</text>
+  <text x="238" y="420" text-anchor="end" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9.5" fill="#94a3b8">previous KDF &#183; n=20</text>
+  <rect x="250" y="392" width="558.81" height="15" rx="3" fill="#f87171" fill-opacity="0.9"/>
+  <rect x="250" y="411" width="588.03" height="15" rx="3" fill="#f87171" fill-opacity="0.28" stroke="#f87171" stroke-width="1" stroke-opacity="0.6"/>
+  <text x="816.81" y="404" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#cbd5e1">p50 53.135 ms</text>
+  <text x="846.03" y="423" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#94a3b8">p95 83.21 ms</text>
+  <line x1="799.9" y1="436" x2="838.03" y2="436" stroke="#f87171" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="799.9" y1="432" x2="799.9" y2="440" stroke="#f87171" stroke-width="1.4" stroke-opacity="0.55"/>
+  <line x1="838.03" y1="432" x2="838.03" y2="440" stroke="#f87171" stroke-width="1.4" stroke-opacity="0.55"/>
+  <text x="846.03" y="440" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="9" fill="#64748b">min 46.348 &#183; max 83.21</text>
+  <text x="24" y="464" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#64748b">Omitted, off scale: cosine similarity over 384d (n=5000) &#8212; p50 below timer resolution, p95 0.001 ms.</text>
+  <text x="24" y="482" font-family="ui-monospace, SFMono-Regular, Menlo, Consolas, 'DejaVu Sans Mono', monospace" font-size="10" fill="#64748b">Network stages (IPFS pin, Sepolia inclusion) are not in this harness &#8212; see pipeline.svg. PBKDF2-100k is the superseded key derivation, shown only for comparison.</text>
+
+</svg>

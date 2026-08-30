@@ -1,0 +1,105 @@
+# =============================================================================
+#  Docker build context exclusions.
+#
+#  The single most important lines in this file are the secret rules below:
+#  a real .env containing SEPOLIA_RPC_URL, PRIVATE_KEY and PINATA_JWT sits in
+#  this directory. Without this file `COPY . .` bakes it into an image layer
+#  where `docker run --entrypoint cat img /app/.env` recovers it forever.
+#
+#  Defence in depth: the builder stage additionally aborts the build if .env
+#  is found in the context, and the runtime stage copies an explicit
+#  allowlist (/out) rather than the whole tree.
+# =============================================================================
+
+# --- Secrets: the reason this file exists ------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.keystore
+keystore/
+secrets/
+
+# --- VCS, CI and git hooks ---------------------------------------------------
+.git
+.gitignore
+.gitattributes
+.github
+.husky
+.gemini
+
+# --- Host-built dependencies (wrong-platform native binaries) ----------------
+node_modules
+**/node_modules
+.npm
+
+# --- Build output regenerated (or simply not needed) inside the image --------
+artifacts
+cache
+typechain-types
+coverage
+coverage.json
+.nyc_output
+lcov.info
+dist
+
+# --- Dev-only tooling and config ---------------------------------------------
+eslint.config.js
+.prettierrc.json
+.prettierignore
+.solhint.json
+.solhintignore
+.solcover.cjs
+slither.config.json
+.editorconfig
+.nvmrc
+.npmrc
+tsconfig.json
+commitlint.config.js
+Dockerfile
+Dockerfile.*
+.dockerignore
+docker-compose.yml
+docker-compose.*.yml
+
+# --- Solidity toolchain: contracts are compiled and deployed outside the image
+hardhat.config.js
+contracts
+
+# --- Tests and operational scripts: not part of the runtime surface ----------
+test
+tests
+scripts
+
+# --- Docs and media ----------------------------------------------------------
+docs
+CHANGELOG.md
+CONTRIBUTING.md
+SECURITY.md
+CODE_OF_CONDUCT.md
+NOTICE
+assets
+*.docx
+*.pdf
+
+# --- Generated / local runtime output ----------------------------------------
+reports
+simulation-results.json
+.cache
+.transformers-cache
+*.log
+logs
+npm-debug.log*
+yarn-error.log*
+
+# --- Editor / OS noise -------------------------------------------------------
+.idea
+.vscode
+*.swp
+.DS_Store
+Thumbs.db
+
+# --- Scratch -----------------------------------------------------------------
+scratch_test.js

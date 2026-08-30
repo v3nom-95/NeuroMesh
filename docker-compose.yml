@@ -1,0 +1,119 @@
+# =============================================================================
+#  NeuroMesh Protocol - local / single-host Compose stack
+#
+#  Usage:
+#    cp .env.example .env      # then fill in real values
+#    docker compose up --build
+#    docker compose --profile local-chain up      # + a local hardhat node
+#
+#  No top-level `version:` key: it is obsolete and ignored by Compose v2.
+#  Requires Compose >= 2.24 for the `env_file: [{path, required}]` long form.
+# =============================================================================
+
+services:
+  neuromesh:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: runtime
+      args:
+        # Build-time metadata ONLY. Never put a secret here: build args are
+        # permanently readable via `docker history`.
+        VERSION: "2.0.0"
+        VCS_REF: "${VCS_REF:-local}"
+        BUILD_DATE: "${BUILD_DATE:-unknown}"
+    image: neuromesh-protocol:local
+    container_name: neuromesh
+
+    # Secrets arrive at runtime only. `required: false` lets `docker compose
+    # config` and a mock-provider run work on a fresh clone with no .env yet.
+    env_file:
+      - path: .env
+        required: false
+
+    # These win over .env on purpose: container-correct values, not host ones.
+    environment:
+      NODE_ENV: production
+      HOST: 0.0.0.0
+      PORT: "7860"
+      LOG_PRETTY: "false"
+      TRANSFORMERS_CACHE: /app/.cache/transformers
+      HF_HOME: /app/.cache/huggingface
+
+    # Bound to loopback so a dev box never exposes a node holding a funded
+    # testnet key to the LAN. Change to "7860:7860" only behind a real proxy.
+    ports:
+      - "127.0.0.1:7860:7860"
+
+    volumes:
+      # Persist the ~90MB embedding model across restarts and rebuilds.
+      # Seeded from the image, so it keeps the node:node ownership.
+      - transformers-cache:/app/.cache
+      # Scratch space for generated output. Long form because the short
+      # `tmpfs:` list gives a root-owned 0755 mount that uid 1000 cannot
+      # write to - verified: `touch /app/reports/p` -> Permission denied.
+      - type: tmpfs
+        target: /app/reports
+        tmpfs:
+          size: 67108864
+          mode: 0o1777
+
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:'+(process.env.PORT||7860)+(process.env.HEALTHCHECK_PATH||'/healthz'),{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      # Generous: first boot may download the embedding model.
+      start_period: 180s
+
+    restart: unless-stopped
+    stop_grace_period: 30s
+
+    # tini is already ENTRYPOINT in the image; this is belt-and-braces for
+    # anyone who overrides the entrypoint.
+    init: true
+
+    # Hardening. The image writes only to the mounted cache volume; /tmp and
+    # /app/reports are tmpfs. If a future backend change writes elsewhere on
+    # disk, add another tmpfs rather than dropping read_only.
+    read_only: true
+    tmpfs:
+      - /tmp
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+    deploy:
+      resources:
+        limits:
+          memory: 2g
+
+  # Opt-in local EVM. Not started by default:
+  #   docker compose --profile local-chain up
+  chain:
+    profiles: ["local-chain"]
+    image: node:22-bookworm-slim
+    container_name: neuromesh-chain
+    working_dir: /app
+    command: sh -c "npm ci && npx hardhat node --hostname 0.0.0.0"
+    volumes:
+      - .:/app
+      - chain-node-modules:/app/node_modules
+    ports:
+      - "127.0.0.1:8545:8545"
+    restart: unless-stopped
+
+volumes:
+  transformers-cache:
+  chain-node-modules:

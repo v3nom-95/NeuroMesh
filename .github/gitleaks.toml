@@ -1,0 +1,95 @@
+# gitleaks configuration for NeuroMesh Protocol.
+# Referenced by .github/workflows/secret-scan.yml via GITLEAKS_CONFIG.
+#
+# Purpose: keep every real credential detectable while making the deliberate
+# placeholders in .env.example and the documentation impossible to false-flag.
+# If a scan trips on a placeholder, add the placeholder to the allowlist below
+# rather than weakening a rule.
+
+title = "NeuroMesh gitleaks config"
+
+[extend]
+# Inherit the full upstream gitleaks ruleset (AWS, GCP, GitHub, JWT, Stripe,
+# generic high-entropy, ...) and add the protocol-specific rules below.
+useDefault = true
+
+# ---------------------------------------------------------------------------
+# Global allowlist - applies to every rule, default and custom.
+# ---------------------------------------------------------------------------
+[allowlist]
+description = "Documented placeholders and generated files"
+paths = [
+  '''\.env\.example$''',
+  '''^docs/.*\.md$''',
+  '''^README\.md$''',
+  '''^CONTRIBUTING\.md$''',
+  '''^SECURITY\.md$''',
+  '''^package-lock\.json$''',
+  '''^\.github/gitleaks\.toml$''',
+]
+regexes = [
+  # All-zero placeholder private key / encryption key used in .env.example,
+  # the docs and the CI smoke jobs.
+  '''0x0{64}''',
+  '''\b0{64}\b''',
+  # Hardhat's first well-known deterministic test account. Public by design,
+  # printed by `npx hardhat node`, holds nothing on any real network.
+  '''0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80''',
+  '''0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d''',
+  # Literal fill-me-in markers.
+  '''REPLACE_ME''',
+  '''YOUR_PROJECT_ID''',
+  '''replace-with-a-64-hex-char''',
+]
+
+# ---------------------------------------------------------------------------
+# Protocol-specific rules the upstream default set does not cover.
+# ---------------------------------------------------------------------------
+[[rules]]
+id = "neuromesh-eth-private-key"
+description = "Ethereum private key assigned to a variable"
+regex = '''(?i)\b(private_key|privatekey|deployer_key|memory_encryption_key)\b\s*[:=]\s*["']?(0x)?[a-f0-9]{64}'''
+keywords = ["private_key", "privatekey", "deployer_key", "memory_encryption_key"]
+
+[[rules]]
+id = "neuromesh-bare-eth-private-key"
+description = "Bare 32-byte hex value that looks like an unlabelled Ethereum private key"
+regex = '''\b0x[a-fA-F0-9]{64}\b'''
+keywords = ["0x"]
+[rules.allowlist]
+# A 32-byte hex literal is NOT inherently a secret: keccak256 digests, EIP-712
+# typehashes, transaction hashes and merkle roots are all exactly this shape and
+# all belong in the source tree. Running this rule everywhere would produce a
+# permanently red scan, which trains everyone to ignore it. So it is scoped to
+# the places where a raw 32-byte key would actually be a mistake - the repo
+# root, scripts/, lib/, server.js and CI config - and muted everywhere digests
+# legitimately live. The labelled rule above still catches a key anywhere.
+description = "Mute paths where 32-byte hex is legitimately a digest, not a key"
+paths = [
+  '''^src/''',
+  '''^contracts/''',
+  '''^test/''',
+  '''^docs/''',
+  '''^public/''',
+  '''^protocol/''',
+  '''^deployments/''',
+  '''^artifacts/''',
+  '''^cache/''',
+  '''\.sol$''',
+  '''\.md$''',
+  '''^package-lock\.json$''',
+  '''^contract-addresses\.json$''',
+  '''^simulation-results\.json$''',
+]
+
+[[rules]]
+id = "neuromesh-pinata-jwt"
+description = "Pinata API JWT"
+regex = '''(?i)\b(pinata_jwt|pinata_api_key|pinata_secret)\b\s*[:=]\s*["']?eyJ[A-Za-z0-9_\-]{10,}\.'''
+keywords = ["pinata"]
+
+[[rules]]
+id = "neuromesh-rpc-url-with-key"
+description = "RPC provider URL with an embedded project id or API key"
+regex = '''https://[a-z0-9.\-]*(infura\.io|alchemy\.com|quiknode\.pro|ankr\.com)/[a-zA-Z0-9/_\-]{16,}'''
+keywords = ["infura.io", "alchemy.com", "quiknode.pro", "ankr.com"]

@@ -1,0 +1,258 @@
+# ---------------------------------------------------------------------------
+# NeuroMesh Protocol - primary CI pipeline
+#
+# Hermetic by construction: NO job in this workflow consumes a repository
+# secret. Contract tests run against Hardhat's in-process EVM and backend tests
+# run with NEUROMESH_EMBEDDING_PROVIDER=mock, so neither needs SEPOLIA_RPC_URL,
+# PRIVATE_KEY, PINATA_JWT nor ETHERSCAN_API_KEY. The "Assert tests are
+# hermetic" step in the contracts and backend jobs enforces that: if anyone
+# later wires a secret into those jobs, CI fails loudly rather than silently
+# making pull_request builds from forks unrunnable.
+#
+# Actions are pinned by major-version tag (@v3/@v4/@v6) and kept current by
+# .github/dependabot.yml. Commit-SHA pinning is strictly stronger against a
+# tag-rewrite attack; that trade-off is documented in CONTRIBUTING.md.
+# ---------------------------------------------------------------------------
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  HUSKY: "0"
+  NPM_CONFIG_FUND: "false"
+  NODE_ENV: test
+  # Tests must never download the ~90 MB embedding model in CI.
+  NEUROMESH_EMBEDDING_PROVIDER: mock
+  MODEL_PRELOAD: "false"
+
+jobs:
+  # -------------------------------------------------------------------------
+  lint:
+    name: Lint and format
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: ESLint
+        run: npm run lint
+      - name: Prettier check
+        run: npm run format:check
+      - name: Solhint
+        run: npm run lint:sol
+      - name: Assert no .env file is tracked in git
+        run: |
+          tracked="$(git ls-files '.env' '.env.*' ':!:.env.example')"
+          if [ -n "$tracked" ]; then
+            echo "::error::A .env file is tracked in git ($tracked). Remove it and rotate every secret it contained."
+            exit 1
+          fi
+          echo "No .env tracked."
+      - name: Assert .env.example exists and carries no real secret
+        run: |
+          test -f .env.example || { echo "::error::.env.example is missing"; exit 1; }
+          if grep -Eq '^(PRIVATE_KEY|PINATA_JWT|MEMORY_ENCRYPTION_KEY|API_AUTH_TOKEN)=[^[:space:]]*[A-Za-z1-9]{40,}' .env.example; then
+            echo "::error::.env.example appears to contain a real secret value"
+            exit 1
+          fi
+          echo ".env.example is placeholder-only."
+
+  # -------------------------------------------------------------------------
+  typecheck:
+    name: Typecheck
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: tsc --noEmit (checkJs)
+        run: npm run typecheck
+
+  # -------------------------------------------------------------------------
+  contracts:
+    name: Contracts (compile and test)
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Assert tests are hermetic (no chain or IPFS secrets)
+        run: |
+          for v in SEPOLIA_RPC_URL PRIVATE_KEY PINATA_JWT ETHERSCAN_API_KEY; do
+            if [ -n "${!v:-}" ]; then
+              echo "::error::$v is set in this job. Contract tests must run against the in-process Hardhat EVM only."
+              exit 1
+            fi
+          done
+          echo "Hermetic: no chain or IPFS secrets present."
+      - name: Cache Solidity compiler downloads
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/hardhat-nodejs
+          key: ${{ runner.os }}-solc-${{ hashFiles('hardhat.config.js') }}
+          restore-keys: |
+            ${{ runner.os }}-solc-
+      - name: Compile
+        run: npx hardhat compile
+      - name: Contract tests
+        run: npx hardhat test
+
+  # -------------------------------------------------------------------------
+  backend:
+    name: Backend tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    strategy:
+      fail-fast: false
+      matrix:
+        node: ["20", "22"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Assert tests are hermetic (no chain or IPFS secrets)
+        run: |
+          for v in SEPOLIA_RPC_URL PRIVATE_KEY PINATA_JWT ETHERSCAN_API_KEY; do
+            if [ -n "${!v:-}" ]; then
+              echo "::error::$v is set in this job. Backend tests must run fully offline against mocks."
+              exit 1
+            fi
+          done
+          echo "Hermetic: no chain or IPFS secrets present."
+      - name: Assert the backend test root exists
+        run: |
+          if [ ! -d test/backend ]; then
+            echo "::error::test/backend does not exist, but npm run test:unit points at it. Create it or repoint the script."
+            exit 1
+          fi
+      - name: Unit and API tests
+        run: npm run test:unit
+      - name: Coverage (Node 22 only)
+        if: matrix.node == '22'
+        run: npm run test:coverage
+
+  # -------------------------------------------------------------------------
+  # The production audit MUST stay at zero high/critical findings. The
+  # `overrides` block in package.json (sharp, adm-zip) is what took this from
+  # 51 findings to 0 - removing it is a regression and this job is the tripwire.
+  audit:
+    name: Dependency audit
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+      - name: Install without running package install scripts
+        run: npm ci --ignore-scripts
+      - name: npm audit - production dependencies, high and above (must pass)
+        run: npm audit --omit=dev --audit-level=high
+      - name: npm audit - all dependencies, moderate and above (informational)
+        run: npm audit --audit-level=moderate || true
+      - name: Assert the lockfile satisfies the production dependency tree
+        run: npm ls --omit=dev --depth=0
+
+  # -------------------------------------------------------------------------
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    needs: [lint]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: docker/setup-buildx-action@v3
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: neuromesh-protocol:ci
+          build-args: |
+            VERSION=${{ github.ref_name }}
+            VCS_REF=${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Assert no .env, .git or build-only path was baked into the image
+        run: |
+          listing="$(docker run --rm --entrypoint sh neuromesh-protocol:ci -c 'ls -a /app')"
+          echo "$listing"
+          for leaked in .env .git test scripts contracts artifacts hardhat.config.js; do
+            if printf '%s\n' "$listing" | grep -qx -- "$leaked"; then
+              echo "::error::$leaked leaked into the runtime image"
+              exit 1
+            fi
+          done
+          echo "No secrets or build-only paths in the image."
+      - name: Assert the container does not run as root
+        run: |
+          uid="$(docker run --rm --entrypoint id neuromesh-protocol:ci -u)"
+          echo "container uid=$uid"
+          test "$uid" != "0" || { echo "::error::image runs as root"; exit 1; }
+      - name: Assert devDependencies are absent from the runtime image
+        run: |
+          for pkg in hardhat eslint typescript prettier solhint supertest; do
+            if docker run --rm --entrypoint sh neuromesh-protocol:ci -c "test -d node_modules/$pkg"; then
+              echo "::error::devDependency $pkg is present in the runtime image"
+              exit 1
+            fi
+          done
+          echo "Runtime image is production-only."
+
+  # -------------------------------------------------------------------------
+  # Single required status check for branch protection on main. It aggregates
+  # every job above and fails on any failure or cancellation, so the required
+  # check name never has to change when a job is added or renamed.
+  ci-success:
+    name: CI success
+    runs-on: ubuntu-latest
+    needs: [lint, typecheck, contracts, backend, audit, docker]
+    if: always()
+    steps:
+      - name: Fail if any job failed or was cancelled
+        env:
+          NEEDS_JSON: ${{ toJSON(needs) }}
+        run: |
+          echo "$NEEDS_JSON"
+          if printf '%s' "$NEEDS_JSON" | grep -q '"result": *"failure"'; then
+            echo "::error::one or more CI jobs failed"
+            exit 1
+          fi
+          if printf '%s' "$NEEDS_JSON" | grep -q '"result": *"cancelled"'; then
+            echo "::error::one or more CI jobs were cancelled"
+            exit 1
+          fi
+          echo "All CI jobs passed."
