@@ -61,7 +61,7 @@ function toSummary(row) {
  * @param {Record<string, any>} deps.guards Shared middleware.
  * @returns {import('express').Router} The router.
  */
-export function createMemoryRoutes({ services, _config, guards }) {
+export function createMemoryRoutes({ services, guards }) {
   const router = Router();
 
   /* ---- Create ----------------------------------------------------------- */
