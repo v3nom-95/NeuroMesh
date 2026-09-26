@@ -134,6 +134,15 @@ library Limits {
      * @param b Subtrahend.
      * @return The difference, or zero when `b >= a`.
      */
+    /// @notice Minimum age a precommit must reach before its reveal is accepted.
+    /// @dev Two blocks' worth of time on a 12s chain. Long enough that an observer who first sees
+    ///      a CID at reveal time cannot retroactively produce an older precommit for it.
+    uint64 internal constant MIN_PRECOMMIT_DELAY = 24 seconds;
+
+    /// @notice Maximum age of a precommit, after which it must be replaced.
+    /// @dev Bounds how long a blinded claim can squat on the mapping.
+    uint64 internal constant MAX_PRECOMMIT_AGE = 1 days;
+
     function satSub(uint256 a, uint256 b) internal pure returns (uint256) {
         return a > b ? a - b : 0;
     }

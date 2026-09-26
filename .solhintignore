@@ -3,3 +3,12 @@ artifacts/
 cache/
 contracts/mocks/
 contracts/test/
+
+# NOTE on max-line-length (configured at 170, not the usual 120):
+# The EIP-712 typehash preimages in AgentIdentity.sol, MemoryLedger.sol and
+# MemoryAccessControl.sol are single string literals that must NOT be wrapped.
+# Solidity concatenates adjacent literals so the hash would be unaffected, but
+# splitting them breaks the backend conformance tests that scan these .sol files
+# to prove src/protocol/eip712.js matches the on-chain definitions, and makes the
+# preimage un-greppable. solhint ignores inline disables for this rule, so the
+# limit is raised globally instead. Nothing else in the tree exceeds 120.

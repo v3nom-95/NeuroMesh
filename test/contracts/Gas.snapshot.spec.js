@@ -4,7 +4,7 @@ import { expect } from 'chai';
 import hre from 'hardhat';
 
 import { cid, deadline, field, validPubKey } from './helpers/constants.js';
-import { input, loadFixture, registeredFixture } from './helpers/fixtures.js';
+import { input, loadFixture, registeredFixture, commitWithPrecommit } from './helpers/fixtures.js';
 import { signMemoryCommit, signRegistration } from './helpers/eip712.js';
 import { checkGas, gasOf, loadSnapshot, writeSnapshot } from './helpers/gas.js';
 
@@ -64,13 +64,13 @@ describe('Gas snapshot and bytecode size', function () {
     );
 
     /* -------------------- MemoryLedger -------------------- */
-    await ledger.connect(agentA).commitMemory(input(cid(1)));
+    await commitWithPrecommit(ledger, agentA, input(cid(1)));
     measured['ledger.commitMemory.genesis'] = await gasOf(
-      ledger.connect(agentA).commitMemory(input(cid(2))),
+      commitWithPrecommit(ledger, agentA, input(cid(2))),
     );
-    await ledger.connect(agentA).commitMemory(input(cid(3), ethers.id(cid(1))));
+    await commitWithPrecommit(ledger, agentA, input(cid(3), ethers.id(cid(1))));
     measured['ledger.commitMemory.withParent'] = await gasOf(
-      ledger.connect(agentA).commitMemory(input(cid(4), ethers.id(cid(2)))),
+      commitWithPrecommit(ledger, agentA, input(cid(4), ethers.id(cid(2)))),
     );
 
     const commitInput = input(cid(5));

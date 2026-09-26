@@ -35,6 +35,9 @@ interface IAgentIdentity {
         uint32 keyVersion;
         bool active;
         bool exists;
+        /// @dev Set when a REGISTRAR suspended this agent. While true, {reactivate} reverts, so a
+        ///      suspended agent cannot undo moderation; only `adminSetActive(agent, true, ...)` clears it.
+        bool suspendedByRegistrar;
         bytes publicKey;
         string metadataURI;
     }

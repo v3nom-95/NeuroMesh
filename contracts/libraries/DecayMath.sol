@@ -21,8 +21,13 @@ import {InvalidParameter} from "./NeuroMeshErrors.sol";
  *
  *      Properties every consumer may rely on:
  *        - Monotone non-increasing in `elapsed` (later never decays less than earlier).
- *        - Always rounds DOWN, so aggregate decayed mass can never exceed the sum of its parts.
- *        - Maximum relative error against true `2^-x` is below 0.15%.
+ *        - The WAD multiplication rounds down, so aggregate decayed mass never exceeds the sum of
+ *          its parts. NOTE this is not the same as the FACTOR being a lower bound - see below.
+ *        - Maximum relative error against true `2^-x` is +4.43%, i.e. `2^(1/16) - 1`, and the error
+ *          is one-sided UPWARD: flooring the exponent to a 1/16 bucket returns a LARGER factor than
+ *          the true curve, so mass decays slightly SLOWER than the nominal half-life and scores are
+ *          biased marginally high. Quoting 0.15% here was wrong by a factor of ~30. Bucket
+ *          interpolation would close the gap; tracked as NM-12 in docs/V2.1-HARDENING-PLAN.md.
  *        - Pure: no storage, no state, no external calls, no loops.
  */
 library DecayMath {

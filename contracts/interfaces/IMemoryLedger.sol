@@ -84,6 +84,9 @@ interface IMemoryLedger {
      *      identifier and walk a version chain purely from the log index - neither of which was
      *      possible with the previous non-indexed string event.
      */
+    /// @notice A blinded CID claim was published. The CID itself is not revealed.
+    event Precommitted(address indexed agent, bytes32 indexed blindedHash, uint64 at);
+
     event MemoryCommitted(
         address indexed owner,
         bytes32 indexed cidHash,
@@ -115,7 +118,29 @@ interface IMemoryLedger {
     //////////////////////////////////////////////////////////////*/
 
     /// @notice Commits a memory proof owned by `msg.sender`.
-    function commitMemory(MemoryInput calldata input) external returns (bytes32 cidHash);
+    /**
+     * @notice Stage two of commit-reveal: record a memory whose claim was precommitted earlier.
+     * @dev Requires a {precommit} for `keccak256(abi.encode(cidHash, msg.sender, salt))` that is at
+     *      least `MIN_PRECOMMIT_DELAY` old and not older than `MAX_PRECOMMIT_AGE`. Without this,
+     *      CID ownership would be first-come-first-served and an observer could claim another
+     *      agent's content by front-running the commit transaction.
+     * @param input The memory to record.
+     * @param salt  The secret used when precommitting. Burned on use.
+     * @return cidHash The keyed hash of the recorded CID.
+     */
+    function commitMemory(MemoryInput calldata input, bytes32 salt) external returns (bytes32 cidHash);
+
+    /**
+     * @notice Stage one of commit-reveal: publish a blinded claim over a CID.
+     * @param blindedHash `keccak256(abi.encode(cidHash, agent, salt))`, which reveals nothing.
+     */
+    function precommit(bytes32 blindedHash) external;
+
+    /// @notice Helper computing the blinded hash off-chain callers must submit to {precommit}.
+    function precommitHash(bytes32 cidHash, address agent, bytes32 salt) external pure returns (bytes32);
+
+    /// @notice Timestamp a blinded hash was precommitted, or zero if unknown.
+    function precommittedAt(bytes32 blindedHash) external view returns (uint64);
 
     /// @notice Commits a memory proof owned by `agent`, authorised by the agent's EIP-712 signature.
     function commitMemoryFor(
@@ -159,7 +184,14 @@ interface IMemoryLedger {
     )
         external
         view
-        returns (address owner, uint64 committedAt, bool isEncrypted, uint32 embeddingDim, string memory model, bool revoked);
+        returns (
+            address owner,
+            uint64 committedAt,
+            bool isEncrypted,
+            uint32 embeddingDim,
+            string memory model,
+            bool revoked
+        );
 
     /// @notice `keccak256(bytes(cid))`, the ledger's primary key.
     function cidHashOf(string calldata cid) external pure returns (bytes32);

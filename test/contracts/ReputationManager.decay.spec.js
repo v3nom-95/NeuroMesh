@@ -123,7 +123,7 @@ describe('ReputationManager - time decay', function () {
       const [p, n, last] = await reputation.massesOf(agentA.address);
       expect(p).to.equal(BASE_W / 2n);
       expect(n).to.equal(0n);
-      expect(last).to.equal(settledAt); // storage is deliberately still stale
+      expect(last).to.be.lte(settledAt); // storage is deliberately still stale
       expect(await reputation.reputationOf(agentA.address)).to.equal(score(BASE_W / 2n, 0n));
       expect(await reputation.reputationOf(agentA.address)).to.equal(40000000000000000n);
     });
@@ -139,7 +139,9 @@ describe('ReputationManager - time decay', function () {
 
       const [p, , last] = await reputation.massesOf(agentA.address);
       expect(p).to.be.closeTo(viewed, 10n ** 12n);
-      expect(last).to.equal(now);
+      // NM-04: settle consumes only whole 1/16-half-life buckets and carries the remainder,
+      // so the stored clock trails `now` by the unapplied residual.
+      expect(last).to.be.lte(now);
 
       // Settling again immediately is a no-op on the masses.
       await reputation.connect(outsider).settle(agentA.address);

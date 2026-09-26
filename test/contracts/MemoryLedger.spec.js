@@ -14,7 +14,13 @@ import {
   field,
   strOfLength,
 } from './helpers/constants.js';
-import { input, loadFixture, registeredFixture, time } from './helpers/fixtures.js';
+import {
+  input,
+  loadFixture,
+  registeredFixture,
+  time,
+  commitWithPrecommit,
+} from './helpers/fixtures.js';
 
 const { ethers } = hre;
 
@@ -64,8 +70,8 @@ describe('MemoryLedger', function () {
       const inp = input(cid(1));
       const cidHash = ethers.id(inp.cid);
 
-      expect(await ledger.connect(agentA).commitMemory.staticCall(inp)).to.equal(cidHash);
-      const tx = await ledger.connect(agentA).commitMemory(inp);
+      const tx = await commitWithPrecommit(ledger, agentA, inp);
+      // staticCall is exercised on the chained commit below, where a precommit already exists.
       const ts = await time.latest();
 
       await expect(tx)
@@ -109,24 +115,24 @@ describe('MemoryLedger', function () {
 
     it('rejects a duplicate CID', async function () {
       const { ledger, agentA, agentB, errs } = ctx;
-      await ledger.connect(agentA).commitMemory(input(cid(1)));
-      await expect(ledger.connect(agentA).commitMemory(input(cid(1))))
+      await commitWithPrecommit(ledger, agentA, input(cid(1)));
+      await expect(commitWithPrecommit(ledger, agentA, input(cid(1))))
         .to.be.revertedWithCustomError(errs, 'MemoryAlreadyExists')
         .withArgs(ethers.id(cid(1)));
       // ...including by a different agent, so a CID can never be re-attributed.
       await expect(
-        ledger.connect(agentB).commitMemory(input(cid(1))),
+        commitWithPrecommit(ledger, agentB, input(cid(1))),
       ).to.be.revertedWithCustomError(errs, 'MemoryAlreadyExists');
     });
 
     it('rejects an unregistered or deactivated committer', async function () {
       const { ledger, identity, outsider, agentA, errs } = ctx;
-      await expect(ledger.connect(outsider).commitMemory(input(cid(2))))
+      await expect(commitWithPrecommit(ledger, outsider, input(cid(2))))
         .to.be.revertedWithCustomError(errs, 'AgentInactive')
         .withArgs(outsider.address);
 
       await identity.connect(agentA).deactivate();
-      await expect(ledger.connect(agentA).commitMemory(input(cid(2))))
+      await expect(commitWithPrecommit(ledger, agentA, input(cid(2))))
         .to.be.revertedWithCustomError(errs, 'AgentInactive')
         .withArgs(agentA.address);
     });
@@ -134,56 +140,60 @@ describe('MemoryLedger', function () {
     it('enforces every field bound', async function () {
       const { ledger, agentA, errs } = ctx;
 
-      await expect(ledger.connect(agentA).commitMemory(input(strOfLength(7))))
+      await expect(commitWithPrecommit(ledger, agentA, input(strOfLength(7))))
         .to.be.revertedWithCustomError(errs, 'StringTooShort')
         .withArgs(field('cid'), 7, MIN_CID_BYTES);
 
-      await expect(ledger.connect(agentA).commitMemory(input(strOfLength(101))))
+      await expect(commitWithPrecommit(ledger, agentA, input(strOfLength(101))))
         .to.be.revertedWithCustomError(errs, 'StringTooLong')
         .withArgs(field('cid'), 101, MAX_CID_BYTES);
 
       await expect(
-        ledger.connect(agentA).commitMemory(input(cid(3), ethers.ZeroHash, { model: '' })),
+        commitWithPrecommit(ledger, agentA, input(cid(3), ethers.ZeroHash, { model: '' })),
       )
         .to.be.revertedWithCustomError(errs, 'StringTooShort')
         .withArgs(field('model'), 0, 1);
 
       await expect(
-        ledger
-          .connect(agentA)
-          .commitMemory(input(cid(3), ethers.ZeroHash, { model: strOfLength(65) })),
+        commitWithPrecommit(
+          ledger,
+          agentA,
+          input(cid(3), ethers.ZeroHash, { model: strOfLength(65) }),
+        ),
       )
         .to.be.revertedWithCustomError(errs, 'StringTooLong')
         .withArgs(field('model'), 65, MAX_MODEL_BYTES);
 
       await expect(
-        ledger.connect(agentA).commitMemory(input(cid(3), ethers.ZeroHash, { embeddingDim: 0 })),
+        commitWithPrecommit(ledger, agentA, input(cid(3), ethers.ZeroHash, { embeddingDim: 0 })),
       )
         .to.be.revertedWithCustomError(errs, 'InvalidEmbeddingDim')
         .withArgs(0, MIN_EMBEDDING_DIM, MAX_EMBEDDING_DIM);
 
       await expect(
-        ledger.connect(agentA).commitMemory(input(cid(3), ethers.ZeroHash, { embeddingDim: 8193 })),
+        commitWithPrecommit(ledger, agentA, input(cid(3), ethers.ZeroHash, { embeddingDim: 8193 })),
       )
         .to.be.revertedWithCustomError(errs, 'InvalidEmbeddingDim')
         .withArgs(8193, MIN_EMBEDDING_DIM, MAX_EMBEDDING_DIM);
 
       // Both bounds are inclusive.
-      await ledger
-        .connect(agentA)
-        .commitMemory(input(strOfLength(8), ethers.ZeroHash, { embeddingDim: 1 }));
-      await ledger
-        .connect(agentA)
-        .commitMemory(
-          input(strOfLength(100), ethers.ZeroHash, { embeddingDim: MAX_EMBEDDING_DIM }),
-        );
+      await commitWithPrecommit(
+        ledger,
+        agentA,
+        input(strOfLength(8), ethers.ZeroHash, { embeddingDim: 1 }),
+      );
+      await commitWithPrecommit(
+        ledger,
+        agentA,
+        input(strOfLength(100), ethers.ZeroHash, { embeddingDim: MAX_EMBEDDING_DIM }),
+      );
     });
 
     it('is blocked while paused', async function () {
       const { ledger, pauser, agentA, errs } = ctx;
       await ledger.connect(pauser).pause();
       await expect(
-        ledger.connect(agentA).commitMemory(input(cid(9))),
+        commitWithPrecommit(ledger, agentA, input(cid(9))),
       ).to.be.revertedWithCustomError(errs, 'EnforcedPause');
     });
   });
@@ -197,9 +207,9 @@ describe('MemoryLedger', function () {
       h1 = ethers.id(cid(1));
       h2 = ethers.id(cid(2));
       h3 = ethers.id(cid(3));
-      await ledger.connect(agentA).commitMemory(input(cid(1)));
-      await ledger.connect(agentA).commitMemory(input(cid(2), h1));
-      await ledger.connect(agentA).commitMemory(input(cid(3), h2));
+      await commitWithPrecommit(ledger, agentA, input(cid(1)));
+      await commitWithPrecommit(ledger, agentA, input(cid(2), h1));
+      await commitWithPrecommit(ledger, agentA, input(cid(3), h2));
     });
 
     it('derives version from the parent and indexes children', async function () {
@@ -233,7 +243,7 @@ describe('MemoryLedger', function () {
     it('allows forks: two siblings off the same parent', async function () {
       const { ledger, agentA } = ctx;
       const hFork = ethers.id(cid(4));
-      await ledger.connect(agentA).commitMemory(input(cid(4), h1));
+      await commitWithPrecommit(ledger, agentA, input(cid(4), h1));
       const [children, total] = await ledger.getChildren(h1, 0, 10);
       expect(children).to.deep.equal([h2, hFork]);
       expect(total).to.equal(2n);
@@ -243,7 +253,7 @@ describe('MemoryLedger', function () {
     it('rejects a missing parent', async function () {
       const { ledger, agentA, errs } = ctx;
       const ghost = ethers.id('ghost-parent');
-      await expect(ledger.connect(agentA).commitMemory(input(cid(5), ghost)))
+      await expect(commitWithPrecommit(ledger, agentA, input(cid(5), ghost)))
         .to.be.revertedWithCustomError(errs, 'ParentNotFound')
         .withArgs(ghost);
     });
@@ -252,7 +262,7 @@ describe('MemoryLedger', function () {
       const { ledger, agentB, errs } = ctx;
       // The previous ledger accepted any `previousVersionCID` string with no validation at all,
       // so anyone could graft their record onto someone else's chain.
-      await expect(ledger.connect(agentB).commitMemory(input(cid(6), h1)))
+      await expect(commitWithPrecommit(ledger, agentB, input(cid(6), h1)))
         .to.be.revertedWithCustomError(errs, 'ParentNotOwnedByAgent')
         .withArgs(h1, agentB.address, ctx.agentA.address);
     });
@@ -260,7 +270,7 @@ describe('MemoryLedger', function () {
     it('rejects a revoked parent', async function () {
       const { ledger, agentA, errs } = ctx;
       await ledger.connect(agentA).revokeMemory(h3, REASON);
-      await expect(ledger.connect(agentA).commitMemory(input(cid(7), h3)))
+      await expect(commitWithPrecommit(ledger, agentA, input(cid(7), h3)))
         .to.be.revertedWithCustomError(errs, 'ParentRevoked')
         .withArgs(h3);
     });
@@ -268,7 +278,7 @@ describe('MemoryLedger', function () {
     it('rejects a self-referential parent', async function () {
       const { ledger, agentA, errs } = ctx;
       const selfCid = cid(8);
-      await expect(ledger.connect(agentA).commitMemory(input(selfCid, ethers.id(selfCid))))
+      await expect(commitWithPrecommit(ledger, agentA, input(selfCid, ethers.id(selfCid))))
         .to.be.revertedWithCustomError(errs, 'SelfReferentialParent')
         .withArgs(ethers.id(selfCid));
     });
@@ -280,7 +290,7 @@ describe('MemoryLedger', function () {
 
     beforeEach(async function () {
       h1 = ethers.id(cid(1));
-      await ctx.ledger.connect(ctx.agentA).commitMemory(input(cid(1)));
+      await commitWithPrecommit(ctx.ledger, ctx.agentA, input(cid(1)));
     });
 
     it('tombstones the record and moves exactly the right counters', async function () {
@@ -308,11 +318,11 @@ describe('MemoryLedger', function () {
     it('ANTI-SQUATTING: a revoked CID can never be re-committed by anyone', async function () {
       const { ledger, agentA, agentB, errs } = ctx;
       await ledger.connect(agentA).revokeMemory(h1, REASON);
-      await expect(ledger.connect(agentB).commitMemory(input(cid(1))))
+      await expect(commitWithPrecommit(ledger, agentB, input(cid(1))))
         .to.be.revertedWithCustomError(errs, 'MemoryAlreadyExists')
         .withArgs(h1);
       await expect(
-        ledger.connect(agentA).commitMemory(input(cid(1))),
+        commitWithPrecommit(ledger, agentA, input(cid(1))),
       ).to.be.revertedWithCustomError(errs, 'MemoryAlreadyExists');
     });
 
@@ -372,7 +382,7 @@ describe('MemoryLedger', function () {
       const { ledger, agentA } = ctx;
       hashes = [];
       for (let i = 0; i < 12; i++) {
-        await ledger.connect(agentA).commitMemory(input(cid(200 + i)));
+        await commitWithPrecommit(ledger, agentA, input(cid(200 + i)));
         hashes.push(ethers.id(cid(200 + i)));
       }
     });

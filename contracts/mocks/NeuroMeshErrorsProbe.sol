@@ -108,4 +108,12 @@ contract NeuroMeshErrorsProbe {
     error AccessControlBadConfirmation();
     error ReentrancyGuardReentrantCall();
     error InvalidAccountNonce(address account, uint256 currentNonce);
+
+    /* ---- v2.1 hardening (see docs/V2.1-HARDENING-PLAN.md) ---- */
+    error PrecommitNotFound(bytes32 blindedHash);
+    error PrecommitTooYoung(bytes32 blindedHash, uint64 revealableAt, uint256 blockTimestamp);
+    error PrecommitAlreadyExists(bytes32 blindedHash);
+    error PrecommitExpired(bytes32 blindedHash, uint64 expiresAt, uint256 blockTimestamp);
+    error SuspendedByRegistrar(address agent);
+    error InvalidRecipient(address provided, address expected);
 }

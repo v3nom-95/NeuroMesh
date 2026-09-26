@@ -12,7 +12,13 @@ import {
   field,
   validPubKey,
 } from './helpers/constants.js';
-import { input, loadFixture, registeredFixture, time } from './helpers/fixtures.js';
+import {
+  input,
+  loadFixture,
+  registeredFixture,
+  time,
+  commitWithPrecommit,
+} from './helpers/fixtures.js';
 import {
   MemoryCommitTypes,
   ZERO_SIGNATURE,
@@ -208,7 +214,7 @@ describe('MemoryLedger - EIP-712 provenance', function () {
 
     it('rejects a tampered prevCidHash', async function () {
       const { ledger, agentA, relayer } = ctx;
-      await ledger.connect(agentA).commitMemory(input(cid(500)));
+      await commitWithPrecommit(ledger, agentA, input(cid(500)));
       const { inp, dl, signature } = await authorised();
       const tampered = { ...inp, prevCidHash: ethers.id(cid(500)) };
       await expectInvalid(
@@ -504,7 +510,7 @@ describe('MemoryLedger - EIP-712 provenance', function () {
 
     beforeEach(async function () {
       h1 = ethers.id(cid(60));
-      await ctx.ledger.connect(ctx.agentA).commitMemory(input(cid(60)));
+      await commitWithPrecommit(ctx.ledger, ctx.agentA, input(cid(60)));
     });
 
     it("revokes on the owner's authorisation, submitted by a relayer", async function () {
@@ -622,7 +628,7 @@ describe('MemoryLedger - EIP-712 provenance', function () {
   describe('memoryCommitDigest helper agreement', function () {
     it('matches hashCommit for a chained record too', async function () {
       const { ledger, agentA } = ctx;
-      await ledger.connect(agentA).commitMemory(input(cid(70)));
+      await commitWithPrecommit(ledger, agentA, input(cid(70)));
       const child = input(cid(71), ethers.id(cid(70)), { embeddingDim: 768, isEncrypted: false });
       const nonce = await ledger.nonces(agentA.address);
       const dl = await deadline();

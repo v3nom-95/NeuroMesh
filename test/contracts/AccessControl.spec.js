@@ -47,7 +47,7 @@ describe('Access control matrix', function () {
   describe('every role-gated entrypoint refuses an unauthorised caller', function () {
     /** [contract key, method, required role, argument builder] */
     function tuples(c) {
-      const { hashes, agentA, agentB, outsider } = c;
+      const { hashes, agentA, agentB, outsider, admin } = c;
       const someHash = hashes.m1;
       return [
         ['identity', 'pause', PAUSER_ROLE, []],
@@ -75,7 +75,7 @@ describe('Access control matrix', function () {
           SLASHER_ROLE,
           [agentB.address, agentA.address, field('x')],
         ],
-        ['reputation', 'withdrawTreasury', TREASURER_ROLE, [outsider.address, 1n]],
+        ['reputation', 'withdrawTreasury', TREASURER_ROLE, [admin.address, 1n]],
 
         ['access', 'pause', PAUSER_ROLE, []],
         ['access', 'unpause', PAUSER_ROLE, []],
@@ -124,7 +124,7 @@ describe('Access control matrix', function () {
     });
 
     it('PARAM_ADMIN, SLASHER and TREASURER can each exercise their own surface', async function () {
-      const { reputation, paramAdmin, slasher, admin, agentA, agentB, outsider } = ctx;
+      const { reputation, paramAdmin, slasher, admin, agentA, agentB } = ctx;
       const stake = ethers.parseEther('0.05');
       await reputation.connect(paramAdmin).setEndorsementStake(stake);
       expect(await reputation.endorsementStakeWei()).to.equal(stake);
@@ -135,7 +135,7 @@ describe('Access control matrix', function () {
         .slashEndorsement(agentB.address, agentA.address, field('x'));
       expect(await reputation.treasuryBalance()).to.equal(stake);
 
-      await reputation.connect(admin).withdrawTreasury(outsider.address, stake);
+      await reputation.connect(admin).withdrawTreasury(admin.address, stake);
       expect(await reputation.treasuryBalance()).to.equal(0n);
     });
   });

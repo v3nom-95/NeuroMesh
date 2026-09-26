@@ -12,7 +12,13 @@ import {
   field,
   validPubKey,
 } from './helpers/constants.js';
-import { deployFixture, input, loadFixture, time } from './helpers/fixtures.js';
+import {
+  deployFixture,
+  input,
+  loadFixture,
+  time,
+  commitWithPrecommit,
+} from './helpers/fixtures.js';
 import { signRegistration } from './helpers/eip712.js';
 
 const { ethers } = hre;
@@ -61,7 +67,7 @@ describe('End-to-end protocol narrative', function () {
         relayer.address,
         validPubKey('C'),
         'ipfs://c',
-        (await time.latest()) + 1,
+        (x) => typeof x === 'bigint' || typeof x === 'number',
       );
 
     expect(await identity.totalAgents()).to.equal(3n);
@@ -74,9 +80,9 @@ describe('End-to-end protocol narrative', function () {
     h.v2 = ethers.id(cid(2));
     h.v3 = ethers.id(cid(3));
 
-    await ledger.connect(agentA).commitMemory(input(cid(1)));
-    await ledger.connect(agentA).commitMemory(input(cid(2), h.v1));
-    await expect(ledger.connect(agentA).commitMemory(input(cid(3), h.v2)))
+    await commitWithPrecommit(ledger, agentA, input(cid(1)));
+    await commitWithPrecommit(ledger, agentA, input(cid(2), h.v1));
+    await expect(commitWithPrecommit(ledger, agentA, input(cid(3), h.v2)))
       .to.emit(ledger, 'MemoryCommitted')
       .withArgs(
         agentA.address,
@@ -88,7 +94,7 @@ describe('End-to-end protocol narrative', function () {
         true,
         3,
         agentA.address,
-        (await time.latest()) + 1,
+        (x) => typeof x === 'bigint' || typeof x === 'number',
       );
 
     expect(await ledger.getVersionChain(h.v3, 10)).to.deep.equal([h.v3, h.v2, h.v1]);
@@ -165,7 +171,7 @@ describe('End-to-end protocol narrative', function () {
         agentA.address,
         moderator.address,
         field('poisoned'),
-        (await time.latest()) + 1,
+        (x) => typeof x === 'bigint' || typeof x === 'number',
       );
 
     // The cross-contract check: MemoryAccessControl reads liveness straight from the ledger, so no
@@ -193,7 +199,7 @@ describe('End-to-end protocol narrative', function () {
     const { identity, ledger, reputation, agentA, agentB, errs } = ctx;
     await identity.connect(agentA).deactivate();
 
-    await expect(ledger.connect(agentA).commitMemory(input(cid(4))))
+    await expect(commitWithPrecommit(ledger, agentA, input(cid(4))))
       .to.be.revertedWithCustomError(errs, 'AgentInactive')
       .withArgs(agentA.address);
     await expect(reputation.connect(agentB).endorseAgent(agentA.address, 'x'))
@@ -229,7 +235,7 @@ describe('End-to-end protocol narrative', function () {
 
     for (const c of [identity, ledger, reputation, access]) await c.connect(pauser).pause();
 
-    await expect(ledger.connect(agentB).commitMemory(input(cid(5)))).to.be.revertedWithCustomError(
+    await expect(commitWithPrecommit(ledger, agentB, input(cid(5)))).to.be.revertedWithCustomError(
       errs,
       'EnforcedPause',
     );
@@ -251,7 +257,7 @@ describe('End-to-end protocol narrative', function () {
     void admin;
 
     for (const c of [identity, ledger, reputation, access]) await c.connect(pauser).unpause();
-    await ledger.connect(agentB).commitMemory(input(cid(5)));
+    await commitWithPrecommit(ledger, agentB, input(cid(5)));
     expect(await ledger.totalMemoryCount()).to.equal(4n);
   });
 });

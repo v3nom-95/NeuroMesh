@@ -192,7 +192,9 @@ interface IReputationManager {
     function isTrusted(address account) external view returns (bool);
 
     /// @notice Decay-adjusted evidence masses and the last settle timestamp.
-    function massesOf(address account) external view returns (uint256 positiveWad, uint256 negativeWad, uint64 lastSettledAt);
+    function massesOf(
+        address account
+    ) external view returns (uint256 positiveWad, uint256 negativeWad, uint64 lastSettledAt);
 
     /// @notice Number of currently active endorsements of `account`.
     function endorserCount(address account) external view returns (uint256);

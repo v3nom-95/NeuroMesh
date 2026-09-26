@@ -1,6 +1,6 @@
 {
   "name": "neuromesh-protocol",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Decentralized cognitive memory protocol for autonomous AI agents: on-chain identity and reputation, IPFS-anchored encrypted memories, and cross-model semantic synchronization.",
   "keywords": [
     "blockchain",

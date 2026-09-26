@@ -19,6 +19,7 @@ import {
     InvalidSignature,
     NotRegistered,
     SignatureExpired,
+    SuspendedByRegistrar,
     StringTooLong
 } from "./libraries/NeuroMeshErrors.sol";
 
@@ -61,6 +62,7 @@ contract AgentIdentity is IAgentIdentity, NeuroMeshGuarded, EIP712, Nonces {
 
     /// @inheritdoc IAgentIdentity
     bytes32 public constant override REGISTRATION_TYPEHASH =
+        // solhint-disable-next-line max-line-length -- one literal: the typehash preimage must stay greppable
         keccak256("Registration(address agent,bytes32 publicKeyHash,bytes32 metadataURIHash,uint256 nonce,uint256 deadline)");
 
     /// @inheritdoc IAgentIdentity
@@ -196,6 +198,9 @@ contract AgentIdentity is IAgentIdentity, NeuroMeshGuarded, EIP712, Nonces {
         Agent storage a = _agents[msg.sender];
         if (!a.exists) revert NotRegistered(msg.sender);
         if (a.active) revert AgentAlreadyActive(msg.sender);
+        // A registrar suspension is moderation, not a self-service state. Without this an agent
+        // undoes its own suspension in the very next transaction and moderation is unenforceable.
+        if (a.suspendedByRegistrar) revert SuspendedByRegistrar(msg.sender);
         a.active = true;
         a.statusChangedAt = uint64(block.timestamp);
         emit AgentStatusChanged(msg.sender, true, msg.sender, bytes32("self"));
@@ -217,6 +222,9 @@ contract AgentIdentity is IAgentIdentity, NeuroMeshGuarded, EIP712, Nonces {
         if (active_ && a.active) revert AgentAlreadyActive(agent);
         if (!active_ && !a.active) revert AgentInactive(agent);
         a.active = active_;
+        // Deactivating here marks the agent as registrar-suspended; reinstating clears it, so the
+        // only route back is another registrar decision.
+        a.suspendedByRegistrar = !active_;
         a.statusChangedAt = uint64(block.timestamp);
         emit AgentStatusChanged(agent, active_, msg.sender, reason);
     }
@@ -299,7 +307,12 @@ contract AgentIdentity is IAgentIdentity, NeuroMeshGuarded, EIP712, Nonces {
      * @param metadataURI Optional metadata pointer.
      * @param registrar   `msg.sender`, recorded in the event for relayer attribution.
      */
-    function _register(address agent, bytes calldata publicKey, string calldata metadataURI, address registrar) internal {
+    function _register(
+        address agent,
+        bytes calldata publicKey,
+        string calldata metadataURI,
+        address registrar
+    ) internal {
         Agent storage a = _agents[agent];
         if (a.exists) revert AlreadyRegistered(agent);
         _validateKey(publicKey);

@@ -670,8 +670,8 @@ describe('ReputationManager', function () {
         .withArgs(field('amount'), STAKE + 1n);
 
       await expect(
-        reputation.connect(admin).withdrawTreasury(outsider.address, STAKE),
-      ).to.changeEtherBalances([outsider, reputation], [STAKE, -STAKE]);
+        reputation.connect(admin).withdrawTreasury(admin.address, STAKE),
+      ).to.changeEtherBalances([admin, reputation], [STAKE, -STAKE]);
       expect(await reputation.treasuryBalance()).to.equal(0n);
     });
 
@@ -685,6 +685,7 @@ describe('ReputationManager', function () {
       await receiver.waitForDeployment();
       const addr = await receiver.getAddress();
 
+      await reputation.connect(admin).setTreasury(addr);
       await expect(reputation.connect(admin).withdrawTreasury(addr, STAKE))
         .to.be.revertedWithCustomError(errs, 'EtherTransferFailed')
         .withArgs(addr, STAKE);
@@ -984,7 +985,9 @@ describe('ReputationManager', function () {
       const { reputation, outsider, agentA, agentB, errs } = ctx;
       await reputation.connect(agentB).endorseAgent(agentA.address, 'x');
       await reputation.connect(outsider).settle(agentA.address);
-      expect((await reputation.massesOf(agentA.address))[2]).to.equal(await time.latest());
+      // NM-04: the clock advances only by the time the bucketed factor consumed, so the residual
+      // (< halfLife/16) is carried and lastSettledAt trails block.timestamp.
+      expect((await reputation.massesOf(agentA.address))[2]).to.be.lte(await time.latest());
 
       const many = new Array(51).fill(agentA.address);
       await expect(reputation.connect(outsider).settleBatch(many))

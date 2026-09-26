@@ -2,7 +2,13 @@ import { expect } from 'chai';
 import hre from 'hardhat';
 
 import { PAUSER_ROLE, STAKE_LOCK, cid, deadline, field, validPubKey } from './helpers/constants.js';
-import { input, loadFixture, memoriesFixture, time } from './helpers/fixtures.js';
+import {
+  input,
+  loadFixture,
+  memoriesFixture,
+  time,
+  commitWithPrecommit,
+} from './helpers/fixtures.js';
 import {
   signAccessGrant,
   signMemoryCommit,
@@ -134,7 +140,7 @@ describe('Pausable surface', function () {
       ['identity.setMetadataURI', () => identity.connect(agentA).setMetadataURI('ipfs://x')],
       ['identity.reactivate', () => identity.connect(agentA).reactivate()],
 
-      ['ledger.commitMemory', () => ledger.connect(agentA).commitMemory(input(cid(901)))],
+      ['ledger.commitMemory', () => commitWithPrecommit(ledger, agentA, input(cid(901)))],
       [
         'ledger.commitMemoryFor',
         () => ledger.connect(relayer).commitMemoryFor(agentA.address, commitInput, dl, commitSig),
@@ -151,10 +157,6 @@ describe('Pausable surface', function () {
       [
         'reputation.endorseAgent',
         () => reputation.connect(agentB).endorseAgent(agentA.address, 'x', { value: STAKE }),
-      ],
-      [
-        'reputation.revokeEndorsement',
-        () => reputation.connect(registeredExtras[1]).revokeEndorsement(agentA.address, 'x'),
       ],
       ['reputation.reportAgent', () => reputation.connect(agentB).reportAgent(agentA.address, 'x')],
       [
@@ -201,7 +203,9 @@ describe('Pausable surface', function () {
     for (const [label, call] of calls) {
       await expect(call(), label).to.be.revertedWithCustomError(ctx.errs, 'EnforcedPause');
     }
-    expect(calls.length).to.equal(20);
+    // 19, not 20: revokeEndorsement became a documented pause exemption (NM-08), because
+    // claimStake is pause-exempt and revocation is its precondition.
+    expect(calls.length).to.equal(19);
   });
 
   it('restores every one of them after unpause', async function () {
@@ -228,18 +232,7 @@ describe('Pausable surface', function () {
   });
 
   it('DOCUMENTED EXEMPTIONS: self-protection, moderation and fund exits survive a pause', async function () {
-    const {
-      identity,
-      ledger,
-      reputation,
-      access,
-      admin,
-      moderator,
-      agentA,
-      agentB,
-      hashes,
-      outsider,
-    } = ctx;
+    const { identity, ledger, reputation, access, admin, moderator, agentA, agentB, hashes } = ctx;
     await pauseAll();
 
     // Self-protection: an agent whose key is compromised must be able to stop the protocol
@@ -262,8 +255,8 @@ describe('Pausable surface', function () {
       [STAKE, -STAKE],
     );
     await expect(
-      reputation.connect(admin).withdrawTreasury(outsider.address, STAKE),
-    ).to.changeEtherBalances([outsider, reputation], [STAKE, -STAKE]);
+      reputation.connect(admin).withdrawTreasury(admin.address, STAKE),
+    ).to.changeEtherBalances([admin, reputation], [STAKE, -STAKE]);
   });
 
   it('leaves every view function readable while paused', async function () {

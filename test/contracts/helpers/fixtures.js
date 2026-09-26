@@ -158,10 +158,10 @@ export async function memoriesFixture() {
   const cids = { m1: cid(1), m2: cid(2), m3: cid(3), b1: cid(101) };
   const h = (c) => ethers.id(c);
 
-  await ledger.connect(agentA).commitMemory(input(cids.m1));
-  await ledger.connect(agentA).commitMemory(input(cids.m2, h(cids.m1)));
-  await ledger.connect(agentA).commitMemory(input(cids.m3, h(cids.m2)));
-  await ledger.connect(agentB).commitMemory(input(cids.b1));
+  await commitWithPrecommit(ledger, agentA, input(cids.m1));
+  await commitWithPrecommit(ledger, agentA, input(cids.m2, h(cids.m1)));
+  await commitWithPrecommit(ledger, agentA, input(cids.m3, h(cids.m2)));
+  await commitWithPrecommit(ledger, agentB, input(cids.b1));
 
   return {
     ...ctx,
@@ -185,3 +185,38 @@ export function input(cidString, prevCidHash = ethers.ZeroHash, overrides = {}) 
     ...overrides,
   };
 }
+
+/**
+ * Commit a memory through the commit–reveal flow.
+ *
+ * `commitMemory` requires a matured {precommit}, which is what closes the CID
+ * front-running hole (NM-01). Tests should exercise the real two-step path rather
+ * than a shortcut, so this helper precommits, advances past MIN_PRECOMMIT_DELAY,
+ * and then reveals.
+ *
+ * @param {any} ledger     MemoryLedger, already `.connect(signer)`-ed or not.
+ * @param {any} signer     The committing agent.
+ * @param {any} memInput   A MemoryInput struct (see {@link input}).
+ * @param {string} [salt]  Optional explicit salt; defaults to one derived from the CID.
+ * @returns {Promise<any>} The commit transaction response.
+ */
+let _saltNonce = 0;
+export async function commitWithPrecommit(ledger, signer, memInput, salt) {
+  // Unique per call: a commit that reverts leaves its precommit unspent, and re-precommitting
+  // the same blinded hash would revert with PrecommitAlreadyExists.
+  _saltNonce += 1;
+  const useSalt = salt ?? ethers.id(`salt:${memInput.cid}:${_saltNonce}`);
+  const cidHash = ethers.keccak256(ethers.toUtf8Bytes(memInput.cid));
+  const blinded = ethers.keccak256(
+    ethers.AbiCoder.defaultAbiCoder().encode(
+      ['bytes32', 'address', 'bytes32'],
+      [cidHash, await signer.getAddress(), useSalt],
+    ),
+  );
+  await ledger.connect(signer).precommit(blinded);
+  await time.increase(MIN_PRECOMMIT_DELAY + 1);
+  return ledger.connect(signer).commitMemory(memInput, useSalt);
+}
+
+/** Seconds a precommit must age before it may be revealed (mirrors Limits.MIN_PRECOMMIT_DELAY). */
+export const MIN_PRECOMMIT_DELAY = 24;

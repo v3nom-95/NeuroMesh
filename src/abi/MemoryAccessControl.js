@@ -1186,14 +1186,14 @@ export const MemoryAccessControlAbi = Object.freeze([
  * @type {string}
  */
 export const MemoryAccessControlDeployedBytecodeHash =
-  '0xabcd87c7deb3b28f626ad93bf09f20c56bfbf39d4497359aee0a160f61544958';
+  '0x5008fcc43d28831194db58f780fa724505cc898dd100d68210a3c0b52e11dbdb';
 
 /**
  * Byte length of the artifact's deployed bytecode. A length of 0 at an address means no contract.
  *
  * @type {number}
  */
-export const MemoryAccessControlDeployedBytecodeSize = 11162;
+export const MemoryAccessControlDeployedBytecodeSize = 11223;
 
 /**
  * Names of this contract's public `*_TYPEHASH()` getters, used by the boot invariant.

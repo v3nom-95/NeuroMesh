@@ -197,6 +197,22 @@ export const ReputationManagerAbi = Object.freeze([
   {
     inputs: [
       {
+        internalType: 'address',
+        name: 'provided',
+        type: 'address',
+      },
+      {
+        internalType: 'address',
+        name: 'expected',
+        type: 'address',
+      },
+    ],
+    name: 'InvalidRecipient',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
         internalType: 'uint256',
         name: 'required',
         type: 'uint256',
@@ -1887,14 +1903,14 @@ export const ReputationManagerAbi = Object.freeze([
  * @type {string}
  */
 export const ReputationManagerDeployedBytecodeHash =
-  '0x14e3a15a024eb8504fc41d12b65eec801f39a189aa1f0b99277bf664c08cf14e';
+  '0x1649daddada41791fe12a5d785e0cbb3787105ea93bd3177ecf648fe19d983b6';
 
 /**
  * Byte length of the artifact's deployed bytecode. A length of 0 at an address means no contract.
  *
  * @type {number}
  */
-export const ReputationManagerDeployedBytecodeSize = 15726;
+export const ReputationManagerDeployedBytecodeSize = 15990;
 
 /**
  * Names of this contract's public `*_TYPEHASH()` getters, used by the boot invariant.

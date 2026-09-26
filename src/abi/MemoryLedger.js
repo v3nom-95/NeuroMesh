@@ -142,6 +142,22 @@ export const MemoryLedgerAbi = Object.freeze([
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'name',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint256',
+        name: 'value',
+        type: 'uint256',
+      },
+    ],
+    name: 'InvalidParameter',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'InvalidShortString',
     type: 'error',
@@ -263,6 +279,70 @@ export const MemoryLedgerAbi = Object.freeze([
       },
     ],
     name: 'ParentRevoked',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'PrecommitAlreadyExists',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint64',
+        name: 'expiresAt',
+        type: 'uint64',
+      },
+      {
+        internalType: 'uint256',
+        name: 'blockTimestamp',
+        type: 'uint256',
+      },
+    ],
+    name: 'PrecommitExpired',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'PrecommitNotFound',
+    type: 'error',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'uint64',
+        name: 'revealableAt',
+        type: 'uint64',
+      },
+      {
+        internalType: 'uint256',
+        name: 'blockTimestamp',
+        type: 'uint256',
+      },
+    ],
+    name: 'PrecommitTooYoung',
     type: 'error',
   },
   {
@@ -478,6 +558,31 @@ export const MemoryLedgerAbi = Object.freeze([
     inputs: [
       {
         indexed: true,
+        internalType: 'address',
+        name: 'agent',
+        type: 'address',
+      },
+      {
+        indexed: true,
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+      {
+        indexed: false,
+        internalType: 'uint64',
+        name: 'at',
+        type: 'uint64',
+      },
+    ],
+    name: 'Precommitted',
+    type: 'event',
+  },
+  {
+    anonymous: false,
+    inputs: [
+      {
+        indexed: true,
         internalType: 'bytes32',
         name: 'role',
         type: 'bytes32',
@@ -671,6 +776,11 @@ export const MemoryLedgerAbi = Object.freeze([
         internalType: 'struct IMemoryLedger.MemoryInput',
         name: 'input',
         type: 'tuple',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'salt',
+        type: 'bytes32',
       },
     ],
     name: 'commitMemory',
@@ -1419,6 +1529,67 @@ export const MemoryLedgerAbi = Object.freeze([
     inputs: [
       {
         internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'precommit',
+    outputs: [],
+    stateMutability: 'nonpayable',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'cidHash',
+        type: 'bytes32',
+      },
+      {
+        internalType: 'address',
+        name: 'agent',
+        type: 'address',
+      },
+      {
+        internalType: 'bytes32',
+        name: 'salt',
+        type: 'bytes32',
+      },
+    ],
+    name: 'precommitHash',
+    outputs: [
+      {
+        internalType: 'bytes32',
+        name: '',
+        type: 'bytes32',
+      },
+    ],
+    stateMutability: 'pure',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
+        name: 'blindedHash',
+        type: 'bytes32',
+      },
+    ],
+    name: 'precommittedAt',
+    outputs: [
+      {
+        internalType: 'uint64',
+        name: '',
+        type: 'uint64',
+      },
+    ],
+    stateMutability: 'view',
+    type: 'function',
+  },
+  {
+    inputs: [
+      {
+        internalType: 'bytes32',
         name: 'role',
         type: 'bytes32',
       },
@@ -1612,14 +1783,14 @@ export const MemoryLedgerAbi = Object.freeze([
  * @type {string}
  */
 export const MemoryLedgerDeployedBytecodeHash =
-  '0xe20c4f7a36e69f6486503912bd6beccbf01f915ff21337117bb882e301428fe2';
+  '0xe2381bc39db86a16b470c79b89c512bf154ab8651c56adb2532810991f10e2d9';
 
 /**
  * Byte length of the artifact's deployed bytecode. A length of 0 at an address means no contract.
  *
  * @type {number}
  */
-export const MemoryLedgerDeployedBytecodeSize = 12907;
+export const MemoryLedgerDeployedBytecodeSize = 13753;
 
 /**
  * Names of this contract's public `*_TYPEHASH()` getters, used by the boot invariant.

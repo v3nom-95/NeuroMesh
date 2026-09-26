@@ -2,7 +2,13 @@ import { expect } from 'chai';
 import hre from 'hardhat';
 
 import { MAX_W, NEG_MULT, TRUST_LOG_CAPACITY, WAD, cid, deadline } from './helpers/constants.js';
-import { input, loadFixture, registeredFixture, time } from './helpers/fixtures.js';
+import {
+  input,
+  loadFixture,
+  registeredFixture,
+  time,
+  commitWithPrecommit,
+} from './helpers/fixtures.js';
 import { flipByte, signMemoryCommit } from './helpers/eip712.js';
 import { attempt } from './helpers/revert.js';
 
@@ -162,7 +168,7 @@ describe('Protocol invariants under a deterministic random walk', function () {
 
           let call;
           if (action === 0) {
-            call = () => ledger.connect(from).commitMemory(inp);
+            call = () => commitWithPrecommit(ledger, from, inp);
           } else {
             const dl = await deadline();
             const { signature } = await signMemoryCommit(from, ledger, {

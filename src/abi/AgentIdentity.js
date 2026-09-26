@@ -234,6 +234,17 @@ export const AgentIdentityAbi = Object.freeze([
     type: 'error',
   },
   {
+    inputs: [
+      {
+        internalType: 'address',
+        name: 'agent',
+        type: 'address',
+      },
+    ],
+    name: 'SuspendedByRegistrar',
+    type: 'error',
+  },
+  {
     inputs: [],
     name: 'ZeroAddress',
     type: 'error',
@@ -604,6 +615,11 @@ export const AgentIdentityAbi = Object.freeze([
           {
             internalType: 'bool',
             name: 'exists',
+            type: 'bool',
+          },
+          {
+            internalType: 'bool',
+            name: 'suspendedByRegistrar',
             type: 'bool',
           },
           {
@@ -1098,14 +1114,14 @@ export const AgentIdentityAbi = Object.freeze([
  * @type {string}
  */
 export const AgentIdentityDeployedBytecodeHash =
-  '0xbbf3b7498c1c6f1794392e0054e8e8f55bf5aab2276fa2e31368a2a4be961713';
+  '0x5927d25230e49ec94c2c0c046dd15f9e0491fc6ca5761a97c8a02cad7862d34a';
 
 /**
  * Byte length of the artifact's deployed bytecode. A length of 0 at an address means no contract.
  *
  * @type {number}
  */
-export const AgentIdentityDeployedBytecodeSize = 9735;
+export const AgentIdentityDeployedBytecodeSize = 9840;
 
 /**
  * Names of this contract's public `*_TYPEHASH()` getters, used by the boot invariant.

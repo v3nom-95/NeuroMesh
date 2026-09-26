@@ -3,13 +3,23 @@
   "plugins": [],
   "rules": {
     "compiler-version": ["error", "^0.8.24"],
-    "func-visibility": ["error", { "ignoreConstructors": true }],
-    "max-line-length": ["error", 120],
+    "func-visibility": [
+      "error",
+      {
+        "ignoreConstructors": true
+      }
+    ],
+    "max-line-length": ["error", 170],
     "code-complexity": ["warn", 8],
     "function-max-lines": ["warn", 60],
     "max-states-count": ["warn", 20],
     "gas-custom-errors": "error",
-    "reason-string": ["warn", { "maxLength": 64 }],
+    "reason-string": [
+      "warn",
+      {
+        "maxLength": 64
+      }
+    ],
     "no-inline-assembly": "warn",
     "avoid-low-level-calls": "warn",
     "avoid-call-value": "warn",
@@ -30,8 +40,18 @@
     "func-name-mixedcase": "error",
     "modifier-name-mixedcase": "error",
     "var-name-mixedcase": "error",
-    "immutable-vars-naming": ["warn", { "immutablesAsConstants": false }],
-    "private-vars-leading-underscore": ["warn", { "strict": false }],
+    "immutable-vars-naming": [
+      "warn",
+      {
+        "immutablesAsConstants": false
+      }
+    ],
+    "private-vars-leading-underscore": [
+      "warn",
+      {
+        "strict": false
+      }
+    ],
     "imports-on-top": "error",
     "ordering": "warn",
     "no-empty-blocks": "warn",

@@ -9,6 +9,53 @@ For a change that alters the public HTTP API, a contract ABI, or on-chain storag
 entry under **BREAKING CHANGES** as well as under its usual section, and say what a consumer has to
 do about it.
 
+## [2.1.0] - 2026-09-26
+
+### Security — contract hardening pass
+
+Fixed 7 of the 12 tracked review findings, including the critical one. Each fix has a regression
+test in `test/contracts/Hardening.v21.spec.js`. Per-issue status: `docs/V2.1-HARDENING-PLAN.md`.
+
+- **NM-01 (critical) — CID front-running.** Memory ownership was first-come-first-served, so any
+  observer who saw a CID could permanently claim another agent's content and lock the rightful
+  owner out. `commitMemory` now requires a matured commit–reveal `precommit`.
+- **NM-02 (high) — endorsement stake was unslashable.** An endorser could front-run the slasher with
+  `revokeEndorsement` and recover 100%. Revoked-but-unclaimed edges are now slashable.
+- **NM-04 (high) — decay was defeatable.** `settle` is permissionless and pinned the clock to `now`,
+  discarding sub-bucket time, so settling faster than once per 1/16 half-life froze a score forever.
+  The clock now advances only by the consumed portion and carries the residual.
+- **NM-06 (high) — moderation was unenforceable.** A registrar-suspended agent could `reactivate()`
+  itself in the next transaction. Suspension is now sticky until a registrar lifts it.
+- **NM-07 (medium)** — an expired access grant no longer blocks re-granting.
+- **NM-08 (medium)** — `revokeEndorsement` is pause-exempt, so escrow is recoverable during a pause.
+- **NM-09 (medium)** — `withdrawTreasury` sends to the configured `treasury`, not an arbitrary address.
+- **NM-05 / NM-12** — corrected two false NatSpec claims: the sybil bar is ~8 mutually-endorsing
+  wallets (not 18), and `DecayMath` quantisation error is +4.43% biased upward (not 0.15%). The
+  behavioural fixes are deferred.
+
+Still open: 0 critical, 3 high (NM-03, NM-05, NM-10), 1 medium (NM-11).
+
+### Changed — BREAKING (contracts)
+
+- `commitMemory(MemoryInput)` → `commitMemory(MemoryInput, bytes32 salt)`
+- added `precommit`, `precommitHash`, `precommittedAt`
+- `Agent` struct gains `suspendedByRegistrar`
+- `commitMemoryFor` is **unchanged** — it was already safe, so the backend needed no modification
+
+### Added — toolchain
+
+- `scripts/verify.js` and `scripts/benchmark.js` (both were referenced by npm scripts but missing)
+- `scripts/deploy.js` rewritten for the v2 suite: correct constructor arity, deploys
+  `MemoryAccessControl`, writes `deployments/<chainId>.json`
+- `scripts/simulate.js` rewritten: distinct BIP-44 agents, so reputation is exercised on-chain
+  rather than logged off-chain as in v1
+- `docs/openapi.json` (23 paths)
+
+### Fixed — quality gates
+
+- typecheck 31 errors → 0; solhint 9 errors → 0
+- 237 contract tests, 707 backend tests, production `npm audit` 0 vulnerabilities
+
 ## [Unreleased]
 
 _Nothing yet._

@@ -19,6 +19,7 @@ import {
     CooldownActive,
     EtherTransferFailed,
     InvalidParameter,
+    InvalidRecipient,
     InvalidStake,
     NotAContract,
     NotEndorsed,
@@ -74,12 +75,22 @@ import {
  *      decreasing in N, and is directly comparable across agents with wildly different endorser
  *      populations. `prior` (default 3.0) is a Bayesian pseudo-count representing "unknown".
  *
- *      SYBIL ARITHMETIC, stated explicitly. With `trustThresholdWad = 0.6` and `priorWad = 3.0`,
- *      crossing the trust line requires P >= 4.5. Each fresh, zero-reputation endorser contributes
- *      only 0.25, so an attacker needs 18 DISTINCT endorsers, each separately registered and active
- *      in AgentIdentity, each clearing the per-pair and per-actor cooldowns, and each locking
- *      `endorsementStakeWei` if staking is enabled. Compare with the old contract, where a single
- *      endorsement from a single throwaway wallet was sufficient.
+ *      SYBIL ARITHMETIC, stated honestly. With `trustThresholdWad = 0.6` and `priorWad = 3.0`,
+ *      crossing the trust line requires P >= 4.5. A fresh, zero-reputation endorser contributes
+ *      `baseEndorserWeightWad` (0.25), which would suggest 18 distinct endorsers.
+ *
+ *      THAT FIGURE IS AN UPPER BOUND, NOT THE REAL COST. `previewEndorsementWeight` reads the
+ *      endorser's own LIVE reputation, and outgoing weight is not row-normalised, so members of a
+ *      mutually-endorsing clique raise each other's weight before endorsing the target. Measured
+ *      against this implementation the practical bar is about 8 mutually-endorsing wallets, not 18.
+ *      Every one must still be separately registered and active in AgentIdentity, clear the
+ *      per-pair and per-actor cooldowns, and lock `endorsementStakeWei` where staking is enabled.
+ *
+ *      Row normalisation (capping an endorser's total outgoing weight at w(i) and splitting it
+ *      across its targets) is the principled fix and is tracked as NM-05 in
+ *      docs/V2.1-HARDENING-PLAN.md. Operators who need the higher bar today should raise
+ *      `trustThresholdWad` or lower `maxEndorserWeightWad`. For comparison, the pre-rewrite contract
+ *      became "trusted" on a single endorsement from a single throwaway wallet.
  *
  *      DECAY IS LAZY. Nothing ever loops over an agent's endorsers. Each agent carries
  *      `(P, N, lastSettledAt)`; `_settle` multiplies both masses by `2^(-dt/halfLife)` and moves the
@@ -292,7 +303,10 @@ contract ReputationManager is IReputationManager, NeuroMeshGuarded, ReentrancyGu
      * @dev THE FIX for the never-decremented endorser count. Removing the edge also starts the stake
      *      unlock timer; the stake itself is withdrawn later through {claimStake}.
      */
-    function revokeEndorsement(address target, string calldata reason) external override whenNotPaused nonReentrant {
+    function revokeEndorsement(address target, string calldata reason) external override nonReentrant {
+        // DELIBERATELY NOT `whenNotPaused`. claimStake is pause-exempt so escrow is always
+        // recoverable, but revocation is its precondition - gating this would have frozen every
+        // endorsement stake for the duration of a pause, contradicting that exemption.
         bytes32 reasonHash = _checkReason(reason);
         Endorsement storage e = _endorsements[msg.sender][target];
         if (e.createdAt == 0 || e.revokedAt != 0) revert NotEndorsed(msg.sender, target);
@@ -413,9 +427,16 @@ contract ReputationManager is IReputationManager, NeuroMeshGuarded, ReentrancyGu
         bytes32 reason
     ) external override onlyRole(Roles.SLASHER_ROLE) nonReentrant {
         Endorsement storage e = _endorsements[from][to];
-        if (e.createdAt == 0 || e.revokedAt != 0) revert NotEndorsed(from, to);
+        // A revoked edge stays slashable until its stake is claimed. Requiring a LIVE edge let any
+        // endorser front-run the slasher with revokeEndorsement and recover the stake in full,
+        // which made slashing unenforceable against anyone paying attention.
+        if (e.createdAt == 0 || e.slashed || e.stakeClaimed) revert NotEndorsed(from, to);
 
-        _removeEndorsement(from, to, TrustEventKind.Slash, reason);
+        // Only tear the edge down once. An already-revoked edge has had its mass and endorserCount
+        // removed, so re-running teardown would double-decrement.
+        if (e.revokedAt == 0) {
+            _removeEndorsement(from, to, TrustEventKind.Slash, reason);
+        }
 
         uint256 amount = e.stake;
         e.slashed = true;
@@ -430,8 +451,14 @@ contract ReputationManager is IReputationManager, NeuroMeshGuarded, ReentrancyGu
      * @dev Bounded by `treasuryBalance`, which only ever grows through {slashEndorsement}, so this can
      *      never touch escrow that still belongs to an endorser.
      */
-    function withdrawTreasury(address to, uint256 amount) external override onlyRole(Roles.TREASURER_ROLE) nonReentrant {
+    function withdrawTreasury(
+        address to,
+        uint256 amount
+    ) external override onlyRole(Roles.TREASURER_ROLE) nonReentrant {
         _requireNonZero(to);
+        // The `treasury` address is the point of `setTreasury`. Allowing an arbitrary recipient
+        // meant the stored value was never read and the setter granted nothing.
+        if (to != treasury) revert InvalidRecipient(to, treasury);
         if (amount == 0 || amount > treasuryBalance) revert InvalidParameter(bytes32("amount"), amount);
 
         treasuryBalance -= amount;
@@ -765,9 +792,32 @@ contract ReputationManager is IReputationManager, NeuroMeshGuarded, ReentrancyGu
         uint256 n = DecayMath.applyDecay(_negativeMass[agent], dt, halfLifeSeconds);
         _positiveMass[agent] = p;
         _negativeMass[agent] = n;
-        _lastSettledAt[agent] = uint64(block.timestamp);
 
-        emit ReputationSettled(agent, p, n, uint64(block.timestamp));
+        // decayFactor quantises to 1/16-half-life buckets, so any elapsed time shorter than
+        // halfLife/16 decays by nothing. Advancing the clock to `now` regardless would discard that
+        // unapplied time, and settling faster than one bucket would freeze the score forever
+        // (`settle` is permissionless). Advance only by the time the quantised factor consumed and
+        // carry the residual, so repeated settles compose to the same result as one long one.
+        uint64 settledTo = uint64(last + _consumedBy(dt, halfLifeSeconds));
+        _lastSettledAt[agent] = settledTo;
+
+        emit ReputationSettled(agent, p, n, settledTo);
+    }
+
+    /**
+     * @dev How much of `dt` the bucket-quantised decay factor actually consumed.
+     *      Whole half-lives pass through exactly; the remainder is floored to a 1/16 bucket. The
+     *      unconsumed tail (< halfLife/16) is carried forward by {_settle}.
+     * @param dt       Seconds elapsed since the last settle.
+     * @param halfLife Current half-life in seconds.
+     * @return The consumed portion of `dt`, always <= `dt`.
+     */
+    function _consumedBy(uint256 dt, uint256 halfLife) internal pure returns (uint256) {
+        if (halfLife == 0) return dt;
+        uint256 whole = (dt / halfLife) * halfLife;
+        uint256 rem = dt % halfLife;
+        // floor(rem / (halfLife/16)) buckets, expressed without dividing by a possibly-zero bucket
+        return whole + (((rem * 16) / halfLife) * halfLife) / 16;
     }
 
     /**

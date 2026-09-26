@@ -16,6 +16,7 @@ import {
     DeadlineTooFar,
     InvalidEmbeddingDim,
     InvalidPageSize,
+    InvalidParameter,
     InvalidSignature,
     MemoryAlreadyExists,
     MemoryAlreadyRevoked,
@@ -25,6 +26,10 @@ import {
     ParentNotFound,
     ParentNotOwnedByAgent,
     ParentRevoked,
+    PrecommitAlreadyExists,
+    PrecommitExpired,
+    PrecommitNotFound,
+    PrecommitTooYoung,
     SelfReferentialParent,
     SignatureExpired
 } from "./libraries/NeuroMeshErrors.sol";
@@ -79,6 +84,7 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
     /// @inheritdoc IMemoryLedger
     bytes32 public constant override MEMORY_COMMIT_TYPEHASH =
         keccak256(
+            // solhint-disable-next-line max-line-length -- one literal: the typehash preimage must stay greppable
             "MemoryCommit(address agent,bytes32 cidHash,bytes32 prevCidHash,bytes32 modelHash,uint32 embeddingDim,bool isEncrypted,uint256 nonce,uint256 deadline)"
         );
 
@@ -101,6 +107,11 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
 
     /// @dev parent cidHash => child cidHashes, so forks and successors are discoverable on chain.
     mapping(bytes32 => bytes32[]) private _children;
+
+    /// @dev blindedHash => timestamp the precommit was made. See {precommit}.
+    ///      blindedHash = keccak256(abi.encode(cidHash, agent, salt)) and reveals nothing about
+    ///      the CID, so an observer cannot front-run a claim they have not yet seen.
+    mapping(bytes32 => uint64) private _precommits;
 
     /// @inheritdoc IMemoryLedger
     mapping(address => uint256) public override activeMemoryCount;
@@ -140,8 +151,63 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
      * @dev Self-commit: the transaction signature already authenticates the agent, so no additional
      *      signature is accepted. This is the path the node uses when the agent holds its own gas.
      */
-    function commitMemory(MemoryInput calldata input) external override whenNotPaused returns (bytes32) {
+    function commitMemory(MemoryInput calldata input, bytes32 salt)
+        external
+        override
+        whenNotPaused
+        returns (bytes32)
+    {
+        // Validate before burning the precommit, so a malformed commit does not cost the agent
+        // its salt and force a fresh precommit round-trip.
+        _validateInput(input);
+        _consumePrecommit(msg.sender, keccak256(bytes(input.cid)), salt);
         return _commit(msg.sender, input, msg.sender);
+    }
+
+    /**
+     * @inheritdoc IMemoryLedger
+     * @dev Stage one of commit-reveal. `blindedHash` binds the CID, the claiming agent and a secret
+     *      salt, so it leaks nothing an observer could act on. Ownership is decided by precommit
+     *      order, not by who lands a transaction first once the CID is public.
+     */
+    function precommit(bytes32 blindedHash) external override whenNotPaused {
+        if (blindedHash == bytes32(0)) revert InvalidParameter(bytes32("blindedHash"), 0);
+        uint64 existing = _precommits[blindedHash];
+        if (existing != 0 && block.timestamp <= uint256(existing) + Limits.MAX_PRECOMMIT_AGE) {
+            revert PrecommitAlreadyExists(blindedHash);
+        }
+        _precommits[blindedHash] = uint64(block.timestamp);
+        emit Precommitted(msg.sender, blindedHash, uint64(block.timestamp));
+    }
+
+    /// @inheritdoc IMemoryLedger
+    function precommitHash(bytes32 cidHash, address agent, bytes32 salt) public pure override returns (bytes32) {
+        return keccak256(abi.encode(cidHash, agent, salt));
+    }
+
+    /// @inheritdoc IMemoryLedger
+    function precommittedAt(bytes32 blindedHash) external view override returns (uint64) {
+        return _precommits[blindedHash];
+    }
+
+    /**
+     * @dev Verifies and burns the precommit backing this (agent, cid, salt) triple.
+     *      Burning makes the salt single-use, so a revealed salt cannot be replayed.
+     */
+    function _consumePrecommit(address agent, bytes32 cidHash, bytes32 salt) private {
+        bytes32 blinded = precommitHash(cidHash, agent, salt);
+        uint64 madeAt = _precommits[blinded];
+        if (madeAt == 0) revert PrecommitNotFound(blinded);
+
+        uint256 revealableAt = uint256(madeAt) + Limits.MIN_PRECOMMIT_DELAY;
+        if (block.timestamp < revealableAt) {
+            revert PrecommitTooYoung(blinded, uint64(revealableAt), block.timestamp);
+        }
+        uint256 expiresAt = uint256(madeAt) + Limits.MAX_PRECOMMIT_AGE;
+        if (block.timestamp > expiresAt) {
+            revert PrecommitExpired(blinded, uint64(expiresAt), block.timestamp);
+        }
+        delete _precommits[blinded];
     }
 
     /**
@@ -259,7 +325,14 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
         external
         view
         override
-        returns (address owner, uint64 committedAt, bool isEncrypted, uint32 embeddingDim, string memory model, bool revoked)
+        returns (
+            address owner,
+            uint64 committedAt,
+            bool isEncrypted,
+            uint32 embeddingDim,
+            string memory model,
+            bool revoked
+        )
     {
         bytes32 cidHash = keccak256(bytes(cid));
         MemoryRecord storage m = _memories[cidHash];
@@ -337,7 +410,10 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
      *      child is committed and records are never rewritten; `maxDepth` is nonetheless enforced as
      *      a belt-and-braces gas bound.
      */
-    function getVersionChain(bytes32 cidHash, uint256 maxDepth) external view override returns (bytes32[] memory chain) {
+    function getVersionChain(
+        bytes32 cidHash,
+        uint256 maxDepth
+    ) external view override returns (bytes32[] memory chain) {
         if (maxDepth == 0 || maxDepth > Limits.MAX_CHAIN_WALK) revert InvalidPageSize(maxDepth, Limits.MAX_CHAIN_WALK);
         if (_memories[cidHash].owner == address(0)) revert MemoryNotFound(cidHash);
 
@@ -409,16 +485,25 @@ contract MemoryLedger is IMemoryLedger, NeuroMeshGuarded, EIP712, Nonces {
      * @param submitter `msg.sender`, recorded as `committedBy` for relayer attribution.
      * @return cidHash The record's primary key.
      */
-    function _commit(address agent, MemoryInput calldata input, address submitter) internal returns (bytes32 cidHash) {
-        if (!identity.isActive(agent)) revert AgentInactive(agent);
-
+    /**
+     * @dev Field bounds for a memory input. Extracted so {commitMemory} can validate before it
+     *      burns a precommit, and so both commit paths share one definition.
+     */
+    function _validateInput(MemoryInput calldata input) internal pure {
         Limits.checkBytesLen(bytes32("cid"), bytes(input.cid).length, Limits.MIN_CID_BYTES, Limits.MAX_CID_BYTES);
         Limits.checkBytesLen(bytes32("model"), bytes(input.model).length, 1, Limits.MAX_MODEL_BYTES);
         if (input.embeddingDim < Limits.MIN_EMBEDDING_DIM || input.embeddingDim > Limits.MAX_EMBEDDING_DIM) {
             revert InvalidEmbeddingDim(input.embeddingDim, Limits.MIN_EMBEDDING_DIM, Limits.MAX_EMBEDDING_DIM);
         }
+    }
+
+    function _commit(address agent, MemoryInput calldata input, address submitter) internal returns (bytes32 cidHash) {
+        if (!identity.isActive(agent)) revert AgentInactive(agent);
+
+        _validateInput(input);
 
         cidHash = keccak256(bytes(input.cid));
+
         if (_memories[cidHash].owner != address(0)) revert MemoryAlreadyExists(cidHash);
 
         uint32 version = 1;

@@ -13,7 +13,11 @@
 ## How these were found
 
 Three independent adversarial reviews — an exploit lens, a correctness lens and a spec-fidelity lens
-— audited the freshly written contract suite and returned **21 findings**: 1 critical, 7 high,
+— audited the freshly written contract suite and returned **21 raw findings**, deduplicating to 12
+distinct issues. The v2.1 hardening pass then **fixed 7 of those 12, including the critical one**;
+see [V2.1-HARDENING-PLAN.md](./V2.1-HARDENING-PLAN.md) for the per-issue status table.
+**Currently open: 0 critical, 3 high (NM-03, NM-05, NM-10), 1 medium (NM-11).**
+The original triage was: 1 critical, 7 high,
 9 medium, 4 low.
 
 Several issues were reported by more than one reviewer. After merging duplicates, **14 distinct

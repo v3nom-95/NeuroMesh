@@ -194,3 +194,29 @@ error GrantExpired(bytes32 cidHash, address grantee, uint64 expiresAt);
 
 /// @notice A non-zero expiry was not strictly in the future.
 error InvalidExpiry(uint64 expiresAt, uint256 blockTimestamp);
+
+/*//////////////////////////////////////////////////////////////
+                    PRECOMMIT (ANTI FRONT-RUNNING)
+//////////////////////////////////////////////////////////////*/
+
+/// @notice No matching precommit exists for this (agent, cid, salt) triple.
+error PrecommitNotFound(bytes32 blindedHash);
+
+/// @notice A precommit exists but has not yet aged past the reveal delay.
+error PrecommitTooYoung(bytes32 blindedHash, uint64 revealableAt, uint256 blockTimestamp);
+
+/// @notice This blinded hash has already been precommitted and is still unspent.
+error PrecommitAlreadyExists(bytes32 blindedHash);
+
+/// @notice The precommit window elapsed; re-precommit to claim the CID.
+error PrecommitExpired(bytes32 blindedHash, uint64 expiresAt, uint256 blockTimestamp);
+
+/*//////////////////////////////////////////////////////////////
+                      SUSPENSION / MODERATION
+//////////////////////////////////////////////////////////////*/
+
+/// @notice The agent was suspended by a registrar and cannot self-reinstate.
+error SuspendedByRegistrar(address agent);
+
+/// @notice Treasury withdrawals must go to the configured `treasury` address.
+error InvalidRecipient(address provided, address expected);

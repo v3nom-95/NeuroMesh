@@ -38,7 +38,7 @@ _Heterogeneous AI agents commit **encrypted** memories to IPFS and prove ownersh
 <p>
 <img alt="Status alpha" src="https://img.shields.io/badge/status-alpha-F59E0B">
 <img alt="Unaudited" src="https://img.shields.io/badge/audit-unaudited-DC2626">
-<img alt="Open review findings: 1 critical, 7 high" src="https://img.shields.io/badge/open%20findings-1%20critical%20%C2%B7%207%20high-DC2626">
+<img alt="Open review findings: 0 critical, 3 high" src="https://img.shields.io/badge/open%20findings-0%20critical%20%C2%B7%203%20high-F59E0B">
 <img alt="Not deployed to mainnet" src="https://img.shields.io/badge/mainnet-not%20deployed-6B7280">
 </p>
 
@@ -79,14 +79,14 @@ in this document were produced by running the suites, not quoted from a previous
 > **Nothing here is audited, nothing is on mainnet, and the deployed contracts are a superseded version.**
 > Do not place anything of value in it.
 
-| NeuroMesh **is**                                                                                                                         | NeuroMesh **is not**                                                                                                                                                                                       |
-| ---------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| A working prototype of an agent-memory protocol, exercised on Sepolia                                                                    | **Not audited.** 21 open review findings — 1 critical, 7 high — are listed in [docs/SECURITY-NOTES.md](./docs/SECURITY-NOTES.md) and deferred to v2.1                                                      |
-| Real AES-256-GCM envelope encryption performed before context leaves the node ([`src/protocol/envelope.js`](./src/protocol/envelope.js)) | **Not a zero-knowledge system.** There are no ZK proofs anywhere in this repository. Encryption hides content; it proves nothing about it                                                                  |
-| Real IPFS pinning through Pinata, producing real CIDs                                                                                    | **Not solved cross-model alignment.** A random projection preserves distances _within_ one source space; it does not align two independently trained encoders. See [Known limitations](#known-limitations) |
-| Four Solidity contracts with role-based access control, pausability and a decaying reputation model                                      | **Not a live swarm.** The sample run drives five agent roles from a single wallet, so the identity and sybil surfaces are not genuinely exercised                                                          |
-| A reproducible local latency harness with n = 40–5000 per measurement                                                                    | **Not a production trust network.** Reputation events in the sample run are modelled off-chain, not submitted as transactions                                                                              |
-| Apache-2.0 licensed, with a documented threat model                                                                                      | **Not a token, and not an incentive layer.** There is no economic security of any kind                                                                                                                     |
+| NeuroMesh **is**                                                                                                                         | NeuroMesh **is not**                                                                                                                                                                                                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| A working prototype of an agent-memory protocol, exercised on Sepolia                                                                    | **Not audited.** The v2.1 hardening pass fixed 7 of 12 tracked findings, including the critical one. **4 remain open — 3 high, 1 medium** — listed in [docs/SECURITY-NOTES.md](./docs/SECURITY-NOTES.md) and tracked in [docs/V2.1-HARDENING-PLAN.md](./docs/V2.1-HARDENING-PLAN.md) |
+| Real AES-256-GCM envelope encryption performed before context leaves the node ([`src/protocol/envelope.js`](./src/protocol/envelope.js)) | **Not a zero-knowledge system.** There are no ZK proofs anywhere in this repository. Encryption hides content; it proves nothing about it                                                                                                                                            |
+| Real IPFS pinning through Pinata, producing real CIDs                                                                                    | **Not solved cross-model alignment.** A random projection preserves distances _within_ one source space; it does not align two independently trained encoders. See [Known limitations](#known-limitations)                                                                           |
+| Four Solidity contracts with role-based access control, pausability and a decaying reputation model                                      | **Not a live swarm.** The sample run drives five agent roles from a single wallet, so the identity and sybil surfaces are not genuinely exercised                                                                                                                                    |
+| A reproducible local latency harness with n = 40–5000 per measurement                                                                    | **Not a production trust network.** Reputation events in the sample run are modelled off-chain, not submitted as transactions                                                                                                                                                        |
+| Apache-2.0 licensed, with a documented threat model                                                                                      | **Not a token, and not an incentive layer.** There is no economic security of any kind                                                                                                                                                                                               |
 
 ---
 
@@ -563,7 +563,7 @@ retrieval benchmark has not yet been run, so no matrix is claimed. See
 
 ## Known limitations
 
-This section is deliberately long. The contracts carry **21 open review findings — 1 critical, 7 high,
+This section is deliberately long. The contracts carry **4 open review findings — 3 high, 1 medium** (7 of 12 tracked issues, including the critical one, were fixed in the v2.1 hardening pass; the original review returned 21 raw findings deduplicating to 12,
 9 medium, 4 low** — deduplicated to 14 distinct issues (SEC-01 … SEC-14) in
 [docs/SECURITY-NOTES.md](./docs/SECURITY-NOTES.md) and scheduled as 12 work items in
 [docs/V2.1-HARDENING-PLAN.md](./docs/V2.1-HARDENING-PLAN.md). **None of them is fixed in this tree.**
@@ -639,7 +639,7 @@ This section is deliberately long. The contracts carry **21 open review findings
 ## Security
 
 - **Unaudited, Sepolia-only, no mainnet value.** Do not put anything you care about into this system.
-- **Open findings: 1 critical, 7 high, 9 medium, 4 low.** Enumerated with reproductions in
+- **Open findings: 0 critical, 3 high, 1 medium.** Seven tracked issues were fixed in v2.1 (see CHANGELOG). Enumerated with reproductions in
   [docs/SECURITY-NOTES.md](./docs/SECURITY-NOTES.md). Trust boundaries, adversary capabilities and residual
   risk are in [docs/THREAT_MODEL.md](./docs/THREAT_MODEL.md).
 - **Report vulnerabilities privately** per [SECURITY.md](./SECURITY.md) — not in a public issue.

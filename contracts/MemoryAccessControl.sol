@@ -66,6 +66,7 @@ contract MemoryAccessControl is IMemoryAccessControl, NeuroMeshGuarded, EIP712, 
     /// @inheritdoc IMemoryAccessControl
     bytes32 public constant override ACCESS_GRANT_TYPEHASH =
         keccak256(
+            // solhint-disable-next-line max-line-length -- one literal: the typehash preimage must stay greppable
             "AccessGrant(address owner,bytes32 cidHash,address grantee,bytes32 wrappedKeyHash,uint64 expiresAt,uint256 nonce,uint256 deadline)"
         );
 
@@ -301,7 +302,10 @@ contract MemoryAccessControl is IMemoryAccessControl, NeuroMeshGuarded, EIP712, 
         Limits.checkBytesLen(bytes32("wrappedKey"), wrappedKey.length, 1, Limits.MAX_WRAPPED_KEY_BYTES);
 
         Grant storage g = _grants[cidHash][grantee];
-        if (g.exists && g.revokedAt == 0) revert AccessAlreadyGranted(cidHash, grantee);
+        // An expired grant is not an active one. Treating it as active made a grant permanently
+        // un-renewable once its expiry passed.
+        bool stillActive = g.exists && g.revokedAt == 0 && (g.expiresAt == 0 || g.expiresAt > block.timestamp);
+        if (stillActive) revert AccessAlreadyGranted(cidHash, grantee);
         if (!g.exists) {
             // Index once per pair, so re-granting after a revocation cannot duplicate index entries.
             _granteeList[cidHash].push(grantee);
