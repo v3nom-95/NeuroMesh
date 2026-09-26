@@ -176,7 +176,9 @@ export function buildOpenApi({
       } else if (status === 304) {
         operationResponses['304'] = { description: 'Not modified; the ETag still matches.' };
       } else {
-        const shared = /** @type {Record<number, [string, string]>} */ (ERROR_RESPONSES)[status];
+        const shared = /** @type {Record<number, [string, string]>} */ (
+          /** @type {unknown} */ (ERROR_RESPONSES)
+        )[status];
         operationResponses[String(status)] = shared
           ? { $ref: `#/components/responses/${shared[0]}` }
           : { description: `HTTP ${status}.` };

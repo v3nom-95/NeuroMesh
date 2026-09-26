@@ -115,7 +115,7 @@ export function createApp({ services, config, logger } = /** @type {any} */ ({})
    *    pino-http the module's root logger, which is already at level `silent` under test - so the
    *    request-logging middleware is genuinely exercised rather than skipped, and prints nothing. */
   const httpLog = isPinoLogger(log) ? log : defaultLogger;
-  app.use(pinoHttp(/** @type {any} */ (httpLoggerOptions(httpLog))));
+  app.use(/** @type {any} */ (pinoHttp)(httpLoggerOptions(httpLog)));
 
   /* 5. Security headers.
    *    The CSP has no 'unsafe-inline' anywhere, which is precisely why the dashboard's handlers

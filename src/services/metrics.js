@@ -72,7 +72,6 @@ const SUMMARY_STAGES = Object.freeze({
  *
  * @param {object} [deps] Dependencies.
  * @param {ReturnType<typeof getConfig>} [deps.config] Application config.
- * @returns {MetricsService} The service.
  */
 export function createMetrics({ config = getConfig() } = {}) {
   const enabled = Boolean(config.features?.metrics);

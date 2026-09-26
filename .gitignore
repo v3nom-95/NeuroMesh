@@ -71,3 +71,8 @@ scratch_test.js
 
 # Local workflow scripts (never committed)
 .wf/
+
+# Local chain deployment records (ephemeral)
+deployments/31337.json
+deployments/1337.json
+reports/

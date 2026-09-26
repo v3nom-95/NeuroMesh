@@ -1,0 +1,2463 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "NeuroMesh Node API",
+    "version": "2.0.0",
+    "summary": "Decentralized cognitive memory for autonomous agents.",
+    "description": "Every path below is served by a single NeuroMesh node. Paths are canonical at /api/v1; each operation also lists the unversioned aliases the bundled dashboard uses.\n\nError responses always have the shape `{error:{code,message,details},requestId}`. Branch on `error.code`, never on the message text.\n\nWrite operations return `202` with a job document and a `Location` header; poll `GET /api/v1/jobs/{id}` for per-step progress.",
+    "license": {
+      "name": "Apache-2.0",
+      "identifier": "Apache-2.0"
+    }
+  },
+  "servers": [
+    {
+      "url": "/",
+      "description": "This node."
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Liveness, readiness, node status and this document."
+    },
+    {
+      "name": "Agents",
+      "description": "On-chain identity: registration and lookup."
+    },
+    {
+      "name": "Memory",
+      "description": "The memory lifecycle: create, list, read, verify, decrypt."
+    },
+    {
+      "name": "Jobs",
+      "description": "Progress and results for asynchronous write operations."
+    },
+    {
+      "name": "Semantic",
+      "description": "Cross-model alignment, retrieval and the similarity matrix."
+    },
+    {
+      "name": "Reputation",
+      "description": "Trust scores and the two trust-writing actions."
+    },
+    {
+      "name": "Metrics",
+      "description": "Prometheus exposition and the dashboard summary."
+    },
+    {
+      "name": "Simulation",
+      "description": "Benchmark data from the last local simulation run."
+    }
+  ],
+  "components": {
+    "securitySchemes": {
+      "ApiKeyAuth": {
+        "type": "apiKey",
+        "in": "header",
+        "name": "X-API-Key"
+      },
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer"
+      }
+    },
+    "schemas": {
+      "AddressParams": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "description": "An EIP-55 checksummed Ethereum address.",
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          }
+        },
+        "required": ["address"],
+        "additionalProperties": false
+      },
+      "MemoryParams": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "type": "string",
+            "minLength": 10,
+            "maxLength": 256,
+            "pattern": "^b[a-z2-7]{20,}$",
+            "description": "A CIDv1 (raw codec, sha2-256)."
+          }
+        },
+        "required": ["cid"],
+        "additionalProperties": false
+      },
+      "JobParams": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+            "description": "A job identifier (UUIDv4)."
+          }
+        },
+        "required": ["id"],
+        "additionalProperties": false
+      },
+      "RegisterBody": {
+        "type": "object",
+        "properties": {
+          "metadataURI": {
+            "description": "Optional off-chain profile document for this agent.",
+            "type": "string",
+            "maxLength": 512
+          }
+        },
+        "additionalProperties": false
+      },
+      "CreateMemoryBody": {
+        "type": "object",
+        "properties": {
+          "context": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 8000,
+            "description": "The plaintext to remember. Sealed before it leaves this process."
+          },
+          "parentCid": {
+            "description": "The memory this one supersedes, forming a version chain.",
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 10,
+                "maxLength": 256,
+                "pattern": "^b[a-z2-7]{20,}$",
+                "description": "A CIDv1 (raw codec, sha2-256)."
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "grantees": {
+            "description": "Additional recipients the content encryption key is wrapped to.",
+            "maxItems": 16,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "address": {
+                  "description": "An EIP-55 checksummed Ethereum address.",
+                  "type": "string",
+                  "pattern": "^0x[0-9a-fA-F]{40}$"
+                },
+                "publicKey": {
+                  "type": "string",
+                  "pattern": "^0x0[23][0-9a-fA-F]{64}$",
+                  "description": "The recipient ENCRYPTION public key, not their wallet public key."
+                },
+                "keyVersion": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                }
+              },
+              "required": ["address", "publicKey"],
+              "additionalProperties": false
+            }
+          },
+          "policy": {
+            "description": "Access policy. Bound into the AEAD additional data, so it cannot be edited later.",
+            "type": "object",
+            "properties": {
+              "embeddingVisibility": {
+                "default": "grantees",
+                "type": "string",
+                "enum": ["public", "grantees", "lsh-only"]
+              },
+              "redistribution": {
+                "default": "grantees",
+                "type": "string",
+                "enum": ["forbidden", "grantees", "public"]
+              },
+              "retentionUntil": {
+                "default": null,
+                "anyOf": [
+                  {
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "maximum": 9007199254740991
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "additionalProperties": false
+          },
+          "model": {
+            "default": "minilm",
+            "type": "string",
+            "enum": ["minilm", "distilroberta"],
+            "description": "Embedding model: minilm (384-d) or distilroberta (768-d)."
+          }
+        },
+        "required": ["context"],
+        "additionalProperties": false
+      },
+      "ListMemoriesQuery": {
+        "type": "object",
+        "properties": {
+          "cursor": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "An opaque cursor from a previous page. Never construct one by hand."
+          },
+          "limit": {
+            "default": 20,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "encrypted": {
+            "description": "A boolean. In a query string: true, false, 1 or 0.",
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "string",
+                "enum": ["0", "1", "true", "false"]
+              }
+            ]
+          },
+          "model": {
+            "description": "Filter on the canonical model URI.",
+            "type": "string",
+            "maxLength": 200
+          }
+        },
+        "additionalProperties": false
+      },
+      "DecryptBody": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "SearchBody": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 1000,
+            "description": "Text to embed and search for."
+          },
+          "topK": {
+            "default": 10,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 50
+          },
+          "minSimilarity": {
+            "default": 0,
+            "description": "Cosine floor. Compare it against diagnostics.noiseBaseline before trusting it.",
+            "type": "number",
+            "minimum": -1,
+            "maximum": 1
+          },
+          "trustWeighted": {
+            "default": true,
+            "type": "boolean"
+          },
+          "model": {
+            "default": "minilm",
+            "type": "string",
+            "enum": ["minilm", "distilroberta"],
+            "description": "Embedding model: minilm (384-d) or distilroberta (768-d)."
+          },
+          "owner": {
+            "description": "Restrict to one owning agent.",
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          }
+        },
+        "required": ["query"],
+        "additionalProperties": false
+      },
+      "SimilarityQuery": {
+        "type": "object",
+        "properties": {
+          "maxPairs": {
+            "default": 2000,
+            "description": "Upper bound on the pairs sampled per cell, so the request stays bounded.",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 20000
+          }
+        },
+        "additionalProperties": false
+      },
+      "ReputationQuery": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "default": 25,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          },
+          "cursor": {
+            "type": "string",
+            "maxLength": 512,
+            "description": "An opaque cursor from a previous page. Never construct one by hand."
+          },
+          "addresses": {
+            "description": "Comma-separated addresses to score, instead of the on-chain agent index.",
+            "type": "string",
+            "maxLength": 2000
+          }
+        },
+        "additionalProperties": false
+      },
+      "TrustActionBody": {
+        "type": "object",
+        "properties": {
+          "target": {
+            "description": "The agent being endorsed or reported.",
+            "type": "string",
+            "pattern": "^0x[0-9a-fA-F]{40}$"
+          },
+          "reason": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200
+          }
+        },
+        "required": ["target", "reason"],
+        "additionalProperties": false
+      },
+      "MetricsQuery": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "default": "1h",
+            "type": "string",
+            "enum": ["5m", "1h", "24h"]
+          }
+        },
+        "additionalProperties": false
+      },
+      "JobListQuery": {
+        "type": "object",
+        "properties": {
+          "limit": {
+            "default": 25,
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 100
+          }
+        },
+        "additionalProperties": false
+      },
+      "ErrorResponse": {
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string",
+                "description": "A stable machine-readable code. Branch on this, not on text."
+              },
+              "message": {
+                "type": "string"
+              },
+              "details": {
+                "anyOf": [
+                  {},
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "stack": {
+                "description": "Development and test only; never in production.",
+                "type": "string"
+              }
+            },
+            "required": ["code", "message", "details"],
+            "additionalProperties": {}
+          },
+          "requestId": {
+            "description": "Echoed as the X-Request-Id response header.",
+            "type": ["string", "null"]
+          }
+        },
+        "required": ["error", "requestId"],
+        "additionalProperties": {}
+      },
+      "HealthResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": ["ok", "degraded"]
+          },
+          "uptimeSec": {
+            "type": "number"
+          },
+          "version": {
+            "type": "string"
+          },
+          "commit": {
+            "type": "string"
+          },
+          "node": {
+            "type": "string"
+          },
+          "draining": {
+            "type": "boolean"
+          }
+        },
+        "required": ["status", "uptimeSec", "version", "commit", "node", "draining"],
+        "additionalProperties": {}
+      },
+      "ReadinessCheck": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "status": {
+            "type": "string",
+            "enum": ["up", "down", "degraded", "disabled"]
+          },
+          "critical": {
+            "type": "boolean"
+          },
+          "detail": {
+            "type": ["string", "null"]
+          },
+          "latencyMs": {
+            "type": ["number", "null"]
+          },
+          "checkedAt": {
+            "type": "string"
+          }
+        },
+        "required": ["name", "status", "critical", "detail", "latencyMs", "checkedAt"],
+        "additionalProperties": {}
+      },
+      "ReadinessResponse": {
+        "type": "object",
+        "properties": {
+          "ready": {
+            "type": "boolean"
+          },
+          "draining": {
+            "type": "boolean"
+          },
+          "checks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": ["up", "down", "degraded", "disabled"]
+                },
+                "critical": {
+                  "type": "boolean"
+                },
+                "detail": {
+                  "type": ["string", "null"]
+                },
+                "latencyMs": {
+                  "type": ["number", "null"]
+                },
+                "checkedAt": {
+                  "type": "string"
+                }
+              },
+              "required": ["name", "status", "critical", "detail", "latencyMs", "checkedAt"],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": ["ready", "draining", "checks"],
+        "additionalProperties": {}
+      },
+      "StatusResponse": {
+        "type": "object",
+        "properties": {
+          "node": {
+            "type": "object",
+            "properties": {
+              "name": {
+                "type": "string"
+              },
+              "version": {
+                "type": "string"
+              },
+              "commit": {
+                "type": "string"
+              },
+              "env": {
+                "type": "string"
+              },
+              "uptimeSec": {
+                "type": "number"
+              },
+              "startedAt": {
+                "type": "string"
+              }
+            },
+            "required": ["name", "version", "commit", "env", "uptimeSec", "startedAt"],
+            "additionalProperties": {}
+          },
+          "agent": {
+            "type": "object",
+            "properties": {
+              "address": {
+                "type": ["string", "null"]
+              },
+              "did": {
+                "type": ["string", "null"]
+              },
+              "registered": {
+                "type": ["boolean", "null"]
+              },
+              "active": {
+                "type": ["boolean", "null"]
+              },
+              "keyVersion": {
+                "type": ["number", "null"]
+              },
+              "encryptionPublicKey": {
+                "type": ["string", "null"]
+              },
+              "reputation": {
+                "anyOf": [
+                  {},
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "address",
+              "did",
+              "registered",
+              "active",
+              "keyVersion",
+              "encryptionPublicKey",
+              "reputation"
+            ],
+            "additionalProperties": {}
+          },
+          "chain": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              },
+              "network": {
+                "type": ["string", "null"]
+              },
+              "chainId": {
+                "type": ["number", "null"]
+              },
+              "blockNumber": {
+                "type": ["number", "null"]
+              },
+              "contractsCompatible": {
+                "type": "boolean"
+              },
+              "explorerBase": {
+                "type": ["string", "null"]
+              },
+              "balance": {
+                "type": ["string", "null"]
+              },
+              "contracts": {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {
+                  "type": ["string", "null"]
+                }
+              }
+            },
+            "required": [
+              "configured",
+              "network",
+              "chainId",
+              "blockNumber",
+              "contractsCompatible",
+              "explorerBase",
+              "balance",
+              "contracts"
+            ],
+            "additionalProperties": {}
+          },
+          "model": {
+            "type": "object",
+            "properties": {
+              "ready": {
+                "type": "boolean"
+              },
+              "loading": {
+                "type": "boolean"
+              },
+              "provider": {
+                "type": "string",
+                "enum": ["local", "mock"]
+              },
+              "name": {
+                "type": ["string", "null"]
+              },
+              "dim": {
+                "type": ["number", "null"]
+              },
+              "dimensions": {
+                "type": ["number", "null"]
+              },
+              "error": {
+                "anyOf": [
+                  {},
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": ["ready", "loading", "provider", "name", "dim", "dimensions", "error"],
+            "additionalProperties": {}
+          },
+          "ipfs": {
+            "type": "object",
+            "properties": {
+              "configured": {
+                "type": "boolean"
+              },
+              "provider": {
+                "type": "string"
+              },
+              "gateway": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["configured", "provider", "gateway"],
+            "additionalProperties": {}
+          },
+          "protocol": {
+            "type": "object",
+            "properties": {
+              "version": {
+                "type": "string"
+              },
+              "specHash": {
+                "type": "string"
+              },
+              "sharedDim": {
+                "type": "number"
+              },
+              "projectionId": {
+                "type": ["string", "null"]
+              }
+            },
+            "required": ["version", "specHash", "sharedDim", "projectionId"],
+            "additionalProperties": {}
+          },
+          "features": {
+            "type": "object",
+            "properties": {
+              "write": {
+                "type": "boolean"
+              },
+              "search": {
+                "type": "boolean"
+              },
+              "decrypt": {
+                "type": "boolean"
+              },
+              "metrics": {
+                "type": "boolean"
+              },
+              "legacyRoutes": {
+                "type": "boolean"
+              },
+              "sseToken": {
+                "type": "boolean",
+                "const": false
+              }
+            },
+            "required": ["write", "search", "decrypt", "metrics", "legacyRoutes", "sseToken"],
+            "additionalProperties": {}
+          },
+          "counts": {
+            "type": "object",
+            "properties": {
+              "memories": {
+                "type": "number"
+              },
+              "jobs": {
+                "type": "number"
+              }
+            },
+            "required": ["memories", "jobs"],
+            "additionalProperties": {}
+          },
+          "memoryCount": {
+            "type": "number"
+          },
+          "readOnly": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "node",
+          "agent",
+          "chain",
+          "model",
+          "ipfs",
+          "protocol",
+          "features",
+          "counts",
+          "memoryCount",
+          "readOnly"
+        ],
+        "additionalProperties": {}
+      },
+      "MemorySummary": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "type": "string"
+          },
+          "owner": {
+            "type": "string"
+          },
+          "agentDid": {
+            "type": ["string", "null"]
+          },
+          "model": {
+            "type": ["string", "null"]
+          },
+          "embeddingDim": {
+            "type": "number"
+          },
+          "isEncrypted": {
+            "type": "boolean"
+          },
+          "createdAt": {
+            "type": "number",
+            "description": "Unix seconds."
+          },
+          "txHash": {
+            "type": ["string", "null"]
+          },
+          "blockNumber": {
+            "type": ["number", "null"]
+          },
+          "sizeBytes": {
+            "type": ["number", "null"]
+          }
+        },
+        "required": [
+          "cid",
+          "owner",
+          "agentDid",
+          "model",
+          "embeddingDim",
+          "isEncrypted",
+          "createdAt",
+          "txHash",
+          "blockNumber",
+          "sizeBytes"
+        ],
+        "additionalProperties": {}
+      },
+      "MemoryListResponse": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "cid": {
+                  "type": "string"
+                },
+                "owner": {
+                  "type": "string"
+                },
+                "agentDid": {
+                  "type": ["string", "null"]
+                },
+                "model": {
+                  "type": ["string", "null"]
+                },
+                "embeddingDim": {
+                  "type": "number"
+                },
+                "isEncrypted": {
+                  "type": "boolean"
+                },
+                "createdAt": {
+                  "type": "number",
+                  "description": "Unix seconds."
+                },
+                "txHash": {
+                  "type": ["string", "null"]
+                },
+                "blockNumber": {
+                  "type": ["number", "null"]
+                },
+                "sizeBytes": {
+                  "type": ["number", "null"]
+                }
+              },
+              "required": [
+                "cid",
+                "owner",
+                "agentDid",
+                "model",
+                "embeddingDim",
+                "isEncrypted",
+                "createdAt",
+                "txHash",
+                "blockNumber",
+                "sizeBytes"
+              ],
+              "additionalProperties": {}
+            }
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          },
+          "total": {
+            "type": "number"
+          },
+          "source": {
+            "type": "string",
+            "description": "Where the page came from. Currently always the local index."
+          }
+        },
+        "required": ["items", "nextCursor", "total", "source"],
+        "additionalProperties": {}
+      },
+      "MemoryDetail": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "type": "string"
+          },
+          "cidDigest": {
+            "type": "string"
+          },
+          "payloadVersion": {
+            "type": "string",
+            "description": "Branch on this. v2 is camelCase; v1 was snake_case."
+          },
+          "payload": {},
+          "sizeBytes": {
+            "type": "number"
+          },
+          "onchain": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "onchainReason": {
+            "type": ["string", "null"]
+          },
+          "gatewayUrl": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "cid",
+          "cidDigest",
+          "payloadVersion",
+          "payload",
+          "sizeBytes",
+          "onchain",
+          "onchainReason",
+          "gatewayUrl"
+        ],
+        "additionalProperties": {}
+      },
+      "JobStep": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["pending", "active", "done", "failed", "skipped"]
+          },
+          "ms": {
+            "type": ["number", "null"]
+          },
+          "detail": {}
+        },
+        "required": ["name", "state", "ms", "detail"],
+        "additionalProperties": {}
+      },
+      "Job": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "kind": {
+            "type": "string"
+          },
+          "state": {
+            "type": "string",
+            "enum": ["queued", "running", "succeeded", "failed"]
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": ["pending", "active", "done", "failed", "skipped"]
+                },
+                "ms": {
+                  "type": ["number", "null"]
+                },
+                "detail": {}
+              },
+              "required": ["name", "state", "ms", "detail"],
+              "additionalProperties": {}
+            }
+          },
+          "result": {
+            "anyOf": [
+              {
+                "type": "object",
+                "propertyNames": {
+                  "type": "string"
+                },
+                "additionalProperties": {}
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "error": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "warnings": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "startedAt": {
+            "type": "string"
+          },
+          "finishedAt": {
+            "type": ["string", "null"]
+          }
+        },
+        "required": [
+          "id",
+          "kind",
+          "state",
+          "steps",
+          "result",
+          "error",
+          "warnings",
+          "startedAt",
+          "finishedAt"
+        ],
+        "additionalProperties": {}
+      },
+      "VerificationResponse": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "type": "string"
+          },
+          "ok": {
+            "type": "boolean"
+          },
+          "steps": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "name": {
+                  "type": "string"
+                },
+                "state": {
+                  "type": "string",
+                  "enum": ["pass", "fail", "skip"]
+                },
+                "detail": {
+                  "type": "string"
+                }
+              },
+              "required": ["name", "state", "detail"],
+              "additionalProperties": {}
+            }
+          }
+        },
+        "required": ["cid", "ok", "steps"],
+        "additionalProperties": {}
+      },
+      "DecryptResponse": {
+        "type": "object",
+        "properties": {
+          "cid": {
+            "type": "string"
+          },
+          "context": {
+            "type": "string"
+          },
+          "contentId": {
+            "type": "string"
+          },
+          "verified": {
+            "type": "boolean",
+            "const": true
+          },
+          "embeddingVerified": {
+            "type": "boolean"
+          }
+        },
+        "required": ["cid", "context", "contentId", "verified", "embeddingVerified"],
+        "additionalProperties": {}
+      },
+      "SearchResponse": {
+        "type": "object",
+        "properties": {
+          "query": {
+            "type": ["string", "null"]
+          },
+          "topK": {
+            "type": "number"
+          },
+          "trustWeighted": {
+            "type": "boolean"
+          },
+          "results": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "tookMs": {
+            "type": "number"
+          },
+          "diagnostics": {
+            "type": "object",
+            "properties": {
+              "indexSize": {
+                "type": "number"
+              },
+              "candidateCount": {
+                "type": "number"
+              },
+              "projectionId": {
+                "type": "string"
+              },
+              "outDim": {
+                "type": "number"
+              },
+              "noiseBaseline": {
+                "type": "number",
+                "description": "1/sqrt(dim). Treat anything near it as noise."
+              }
+            },
+            "required": ["indexSize", "candidateCount", "projectionId", "outDim", "noiseBaseline"],
+            "additionalProperties": {}
+          }
+        },
+        "required": ["query", "topK", "trustWeighted", "results", "tookMs", "diagnostics"],
+        "additionalProperties": {}
+      },
+      "SimilarityResponse": {
+        "type": "object",
+        "properties": {
+          "labels": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "matrix": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "type": ["number", "null"]
+              }
+            }
+          },
+          "pairs": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "models": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "diagnostics": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          }
+        },
+        "required": ["labels", "matrix", "pairs", "models", "diagnostics"],
+        "additionalProperties": {}
+      },
+      "ReputationResponse": {
+        "type": "object",
+        "properties": {
+          "entries": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "events": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "thresholds": {
+            "type": "object",
+            "properties": {
+              "trusted": {
+                "type": ["number", "null"]
+              },
+              "max": {
+                "type": "number"
+              }
+            },
+            "required": ["trusted", "max"],
+            "additionalProperties": {}
+          },
+          "nextCursor": {
+            "type": ["string", "null"]
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "required": ["entries", "events", "thresholds", "nextCursor", "total"],
+        "additionalProperties": {}
+      },
+      "AgentResponse": {
+        "type": "object",
+        "properties": {
+          "address": {
+            "type": "string"
+          },
+          "did": {
+            "type": "string"
+          },
+          "registered": {
+            "type": "boolean"
+          },
+          "active": {
+            "type": "boolean"
+          },
+          "keyVersion": {
+            "type": ["number", "null"]
+          },
+          "publicKey": {
+            "type": ["string", "null"]
+          },
+          "metadataURI": {
+            "type": ["string", "null"]
+          },
+          "registeredAt": {
+            "type": ["number", "null"]
+          },
+          "reputation": {
+            "anyOf": [
+              {},
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "address",
+          "did",
+          "registered",
+          "active",
+          "keyVersion",
+          "publicKey",
+          "metadataURI",
+          "registeredAt",
+          "reputation"
+        ],
+        "additionalProperties": {}
+      },
+      "MetricsResponse": {
+        "type": "object",
+        "properties": {
+          "window": {
+            "type": "string"
+          },
+          "latency": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {}
+          },
+          "counters": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "number"
+            }
+          },
+          "gauges": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "number"
+            }
+          }
+        },
+        "required": ["window", "latency", "counters", "gauges"],
+        "additionalProperties": {}
+      },
+      "SimulationResponse": {
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          },
+          "reason": {
+            "type": ["string", "null"]
+          },
+          "hint": {
+            "type": ["string", "null"]
+          },
+          "generatedAt": {
+            "type": ["string", "null"]
+          },
+          "agents": {
+            "type": "array",
+            "items": {}
+          },
+          "memoryCommits": {
+            "type": "array",
+            "items": {}
+          },
+          "reputationEvents": {
+            "type": "array",
+            "items": {}
+          },
+          "crossModelSimilarity": {
+            "type": "array",
+            "items": {}
+          },
+          "benchmarks": {
+            "type": "object",
+            "properties": {
+              "embeddingLatencies": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "encryptionLatencies": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "ipfsLatencies": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "blockchainLatencies": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              },
+              "totalLatencies": {
+                "type": "array",
+                "items": {
+                  "type": "number"
+                }
+              }
+            },
+            "required": [
+              "embeddingLatencies",
+              "encryptionLatencies",
+              "ipfsLatencies",
+              "blockchainLatencies",
+              "totalLatencies"
+            ],
+            "additionalProperties": {}
+          }
+        },
+        "required": [
+          "available",
+          "reason",
+          "hint",
+          "generatedAt",
+          "agents",
+          "memoryCommits",
+          "reputationEvents",
+          "crossModelSimilarity",
+          "benchmarks"
+        ],
+        "additionalProperties": {}
+      }
+    },
+    "responses": {
+      "BadRequest": {
+        "description": "400 - The request failed validation. `error.details` lists every problem at once.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Unauthorized": {
+        "description": "401 - No API key, or an invalid one. Send X-API-Key or Authorization: Bearer.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Forbidden": {
+        "description": "403 - Authenticated, but not permitted to perform this action on this object.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "NotFound": {
+        "description": "404 - No such route, or no such object.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "Conflict": {
+        "description": "409 - The action contradicts current state (already registered, nonce conflict).",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "PayloadTooLarge": {
+        "description": "413 - The request body exceeded the configured limit.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "TooManyRequests": {
+        "description": "429 - Rate limited. Honour Retry-After.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "BadGateway": {
+        "description": "502 - An upstream (pinning service or RPC endpoint) failed.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "ServiceUnavailable": {
+        "description": "503 - A dependency is not ready, or this node is read-only. Retriable.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      },
+      "GatewayTimeout": {
+        "description": "504 - An upstream did not answer within its budget.",
+        "content": {
+          "application/json": {
+            "schema": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            }
+          }
+        }
+      }
+    }
+  },
+  "paths": {
+    "/healthz": {
+      "get": {
+        "operationId": "liveness",
+        "tags": ["Health"],
+        "summary": "Liveness probe.",
+        "description": "Always 200 while the process is up, including while draining. Touches no dependency: a liveness probe that fails because a third-party RPC endpoint is slow restarts a healthy pod. The Dockerfile HEALTHCHECK targets this path.\n\nAlso served at: /api/v1/health, /api/health.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Liveness probe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/readyz": {
+      "get": {
+        "operationId": "readiness",
+        "tags": ["Health"],
+        "summary": "Readiness probe.",
+        "description": "200 when every critical dependency is up, 503 otherwise and immediately once a drain begins. The body is identical at both statuses so a probe and the dashboard read the same document.\n\nAlso served at: /api/v1/ready, /api/ready.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Readiness probe.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReadinessResponse"
+                }
+              }
+            }
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/metrics": {
+      "get": {
+        "operationId": "metrics",
+        "tags": ["Metrics"],
+        "summary": "Prometheus exposition.",
+        "description": "Default process metrics plus the custom instruments. Guarded by METRICS_TOKEN when one is configured; 404 when metrics are disabled, so a disabled endpoint is indistinguishable from a nonexistent one.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Prometheus exposition."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          }
+        }
+      }
+    },
+    "/openapi.json": {
+      "get": {
+        "operationId": "openapi",
+        "tags": ["Health"],
+        "summary": "The OpenAPI 3.1 document.",
+        "description": "Generated from the zod schemas and this route table, so it cannot drift.\n\nAlso served at: /api/docs.json, /api/v1/openapi.json.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "The OpenAPI 3.1 document."
+          }
+        }
+      }
+    },
+    "/docs": {
+      "get": {
+        "operationId": "docs",
+        "tags": ["Health"],
+        "summary": "A dependency-free HTML view of the OpenAPI document.",
+        "description": "Rendered server-side from the same document. No CDN and no external script, because the CSP forbids both.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "A dependency-free HTML view of the OpenAPI document."
+          }
+        }
+      }
+    },
+    "/api/v1/status": {
+      "get": {
+        "operationId": "status",
+        "tags": ["Health"],
+        "summary": "Node identity, chain, model, IPFS and protocol state.",
+        "description": "Assembled with Promise.allSettled, so one slow dependency degrades one field rather than failing the request. A field that cannot be determined is null with the reason in /readyz - never a placeholder string, and never a fabricated default. Cached 2 s.\n\nAlso served at: /api/status.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Node identity, chain, model, IPFS and protocol state.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/agents/register": {
+      "post": {
+        "operationId": "registerAgent",
+        "tags": ["Agents"],
+        "summary": "Register this node on the identity contract. Spends gas.",
+        "description": "Publishes the node's real compressed secp256k1 ENCRYPTION public key, which is derived separately from the wallet key. Preflights isRegistered so an already-registered agent is a 409 rather than a transaction that reverts. Returns 202 with a job.\n\nAlso served at: /api/agents/register, /api/v1/agent/register.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RegisterBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Register this node on the identity contract. Spends gas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/agents/{address}": {
+      "get": {
+        "operationId": "getAgent",
+        "tags": ["Agents"],
+        "summary": "One agent profile, with its reputation.",
+        "description": "The address is validated and checksummed before any chain read. A failed reputation read yields a null score rather than failing the identity lookup.\n\nAlso served at: /api/agents/:address, /api/v1/agent/:address.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "description": "An EIP-55 checksummed Ethereum address.",
+            "schema": {
+              "description": "An EIP-55 checksummed Ethereum address.",
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One agent profile, with its reputation.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AgentResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/memories": {
+      "post": {
+        "operationId": "createMemory",
+        "tags": ["Memory"],
+        "summary": "Commit a memory. Spends gas and pays for a pin.",
+        "description": "Returns 202 with a job id; the six-step pipeline (embed, align, encrypt, pin, commit, confirm) runs in the background with a per-step duration. A failure after the pin runs a compensating unpin and the job still carries the CID, so a client is never left paying for storage it was not told about.\n\nAlso served at: /api/memories.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateMemoryBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Commit a memory. Spends gas and pays for a pin.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "413": {
+            "$ref": "#/components/responses/PayloadTooLarge"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listMemories",
+        "tags": ["Memory"],
+        "summary": "A page of the memories this node has committed.",
+        "description": "Served from an in-process index of what this node committed, which the response labels as source: local-index. The authoritative list is the ledger owner index and the MemoryCommitted log; a restart empties the cache and reconcile() refills it.\n\nAlso served at: /api/memories.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "An opaque cursor from a previous page. Never construct one by hand.",
+            "schema": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "An opaque cursor from a previous page. Never construct one by hand."
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "encrypted",
+            "in": "query",
+            "required": false,
+            "description": "A boolean. In a query string: true, false, 1 or 0.",
+            "schema": {
+              "description": "A boolean. In a query string: true, false, 1 or 0.",
+              "anyOf": [
+                {
+                  "type": "boolean"
+                },
+                {
+                  "type": "string",
+                  "enum": ["0", "1", "true", "false"]
+                }
+              ]
+            }
+          },
+          {
+            "name": "model",
+            "in": "query",
+            "required": false,
+            "description": "Filter on the canonical model URI.",
+            "schema": {
+              "description": "Filter on the canonical model URI.",
+              "type": "string",
+              "maxLength": 200
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "A page of the memories this node has committed.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryListResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/memories/{cid}": {
+      "get": {
+        "operationId": "getMemory",
+        "tags": ["Memory"],
+        "summary": "One memory, CID-verified server-side.",
+        "description": "The node fetches the bytes, checks sha2-256 against the CID, and parses them against the payload schema before answering, so the browser never talks to a third-party gateway and connect-src 'self' stays honest. Strong ETag; 304 on If-None-Match.\n\nAlso served at: /api/memories/:cid.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "description": "A CIDv1 (raw codec, sha2-256).",
+            "schema": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 256,
+              "pattern": "^b[a-z2-7]{20,}$",
+              "description": "A CIDv1 (raw codec, sha2-256)."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One memory, CID-verified server-side.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MemoryDetail"
+                }
+              }
+            }
+          },
+          "304": {
+            "description": "Not modified; the ETag still matches."
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/memories/{cid}/verify": {
+      "get": {
+        "operationId": "verifyMemory",
+        "tags": ["Memory"],
+        "summary": "The step-by-step verification report for one memory.",
+        "description": "Public by design: anyone should be able to check this node’s claims without holding a credential from it. A step the node cannot perform is reported as skip with a reason - skip is not pass.\n\nAlso served at: /api/memories/:cid/verify.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "description": "A CIDv1 (raw codec, sha2-256).",
+            "schema": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 256,
+              "pattern": "^b[a-z2-7]{20,}$",
+              "description": "A CIDv1 (raw codec, sha2-256)."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The step-by-step verification report for one memory.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerificationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/memories/{cid}/decrypt": {
+      "post": {
+        "operationId": "decryptMemory",
+        "tags": ["Memory"],
+        "summary": "Unwrap one memory this node was granted access to.",
+        "description": "Takes NO ciphertext: the only input is the CID in the path, and the request body schema is an empty strict object. The node fetches the bytes, verifies them against the CID, and unwraps only a recipient entry addressed to its own agent address and key version. Authenticated, tightly rate limited, and audited on every call.\n\nAlso served at: /api/memories/:cid/decrypt.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "cid",
+            "in": "path",
+            "required": true,
+            "description": "A CIDv1 (raw codec, sha2-256).",
+            "schema": {
+              "type": "string",
+              "minLength": 10,
+              "maxLength": 256,
+              "pattern": "^b[a-z2-7]{20,}$",
+              "description": "A CIDv1 (raw codec, sha2-256)."
+            }
+          }
+        ],
+        "requestBody": {
+          "required": false,
+          "description": "Deliberately empty and strict. This endpoint accepts NO caller-supplied ciphertext; the only input is the CID in the path.",
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DecryptBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Unwrap one memory this node was granted access to.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DecryptResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "403": {
+            "$ref": "#/components/responses/Forbidden"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs": {
+      "get": {
+        "operationId": "listJobs",
+        "tags": ["Jobs"],
+        "summary": "Recent jobs, for operator debugging.",
+        "description": "Authenticated, because enumerating job ids would defeat the capability that makes GET /jobs/:id safe without a key.\n\nAlso served at: /api/jobs.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Recent jobs, for operator debugging."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/jobs/{id}": {
+      "get": {
+        "operationId": "getJob",
+        "tags": ["Jobs"],
+        "summary": "One job status, with per-step timings.",
+        "description": "No API key: the job id is a UUIDv4 capability that only its creator has seen. That trade obliges a client never to log the id to a shared sink or place it in a cross-origin URL.\n\nAlso served at: /api/jobs/:id.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "A job identifier (UUIDv4).",
+            "schema": {
+              "type": "string",
+              "pattern": "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$",
+              "description": "A job identifier (UUIDv4)."
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One job status, with per-step timings.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "404": {
+            "$ref": "#/components/responses/NotFound"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/semantic/search": {
+      "post": {
+        "operationId": "semanticSearch",
+        "tags": ["Semantic"],
+        "summary": "Trust-weighted semantic search.",
+        "description": "Runs one embedding inference, so it has its own rate-limit bucket and sheds load with 503 model_not_ready rather than queueing behind a model that is still loading. Every response carries diagnostics.noiseBaseline: any similarity near it is indistinguishable from a comparison between unrelated vectors.\n\nAlso served at: /api/semantic/search.",
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SearchBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Trust-weighted semantic search.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/semantic/similarity": {
+      "get": {
+        "operationId": "semanticSimilarity",
+        "tags": ["Semantic"],
+        "summary": "The cross-model similarity matrix.",
+        "description": "Computed from vectors already in the index; it runs no inference, so a GET can never trigger a model download. Pairs whose projection ids differ are skipped rather than scored, and every cell carries a significance flag against the noise baseline.\n\nAlso served at: /api/semantic/similarity.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "maxPairs",
+            "in": "query",
+            "required": false,
+            "description": "Upper bound on the pairs sampled per cell, so the request stays bounded.",
+            "schema": {
+              "default": 2000,
+              "description": "Upper bound on the pairs sampled per cell, so the request stays bounded.",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 20000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "The cross-model similarity matrix.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimilarityResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/semantic/index": {
+      "get": {
+        "operationId": "semanticIndex",
+        "tags": ["Semantic"],
+        "summary": "Semantic index state, for operators.",
+        "description": "Size, projection id, capacity and persistence state.\n\nAlso served at: /api/semantic/index.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Semantic index state, for operators."
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    },
+    "/api/v1/reputation": {
+      "get": {
+        "operationId": "listReputation",
+        "tags": ["Reputation"],
+        "summary": "Scores and the recent trust log.",
+        "description": "Scores are read from the contract and converted from WAD in exactly one place; scoreWad travels alongside the float so a caller needing exactness is not forced through a Number. The trust log is a capacity-bounded ring buffer and the response says so.\n\nAlso served at: /api/reputation.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": 25,
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 100
+            }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "required": false,
+            "description": "An opaque cursor from a previous page. Never construct one by hand.",
+            "schema": {
+              "type": "string",
+              "maxLength": 512,
+              "description": "An opaque cursor from a previous page. Never construct one by hand."
+            }
+          },
+          {
+            "name": "addresses",
+            "in": "query",
+            "required": false,
+            "description": "Comma-separated addresses to score, instead of the on-chain agent index.",
+            "schema": {
+              "description": "Comma-separated addresses to score, instead of the on-chain agent index.",
+              "type": "string",
+              "maxLength": 2000
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Scores and the recent trust log.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReputationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/reputation/{address}": {
+      "get": {
+        "operationId": "getReputation",
+        "tags": ["Reputation"],
+        "summary": "One agent score.",
+        "description": "The same envelope as the list, with a single entry.\n\nAlso served at: /api/reputation/:address.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "address",
+            "in": "path",
+            "required": true,
+            "description": "An EIP-55 checksummed Ethereum address.",
+            "schema": {
+              "description": "An EIP-55 checksummed Ethereum address.",
+              "type": "string",
+              "pattern": "^0x[0-9a-fA-F]{40}$"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "One agent score.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ReputationResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/reputation/endorse": {
+      "post": {
+        "operationId": "endorseAgent",
+        "tags": ["Reputation"],
+        "summary": "Endorse an agent. Spends gas.",
+        "description": "Preflighted in the reputation service: self-endorsement, an unregistered target, a duplicate endorsement and an unexpired cooldown are all refused before any gas is spent. Returns 202 with a job.\n\nAlso served at: /api/reputation/endorse.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrustActionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Endorse an agent. Spends gas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/reputation/report": {
+      "post": {
+        "operationId": "reportAgent",
+        "tags": ["Reputation"],
+        "summary": "Report an agent. Spends gas.",
+        "description": "Same guards and preflights as endorse.\n\nAlso served at: /api/reputation/report.",
+        "security": [
+          {
+            "ApiKeyAuth": []
+          },
+          {
+            "BearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrustActionBody"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Report an agent. Spends gas.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Job"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "401": {
+            "$ref": "#/components/responses/Unauthorized"
+          },
+          "409": {
+            "$ref": "#/components/responses/Conflict"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "503": {
+            "$ref": "#/components/responses/ServiceUnavailable"
+          }
+        }
+      }
+    },
+    "/api/v1/simulation-results": {
+      "get": {
+        "operationId": "simulationResults",
+        "tags": ["Simulation"],
+        "summary": "Benchmark data from the last local simulation run.",
+        "description": "Answers 200 with available:false when the gitignored simulation-results.json is absent, because that is the default state of a fresh clone rather than a fault. The five chart arrays are always present, empty when there is no file, so no view branches on a missing key. Read asynchronously, mtime-cached, and capped at 8 MB.\n\nAlso served at: /api/simulation-results, /api/v1/simulation.",
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Benchmark data from the last local simulation run.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SimulationResponse"
+                }
+              }
+            }
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          },
+          "502": {
+            "$ref": "#/components/responses/BadGateway"
+          }
+        }
+      }
+    },
+    "/api/v1/metrics/summary": {
+      "get": {
+        "operationId": "metricsSummary",
+        "tags": ["Metrics"],
+        "summary": "Latency and counter summary for the dashboard.",
+        "description": "Percentiles are exact over the last 200 observations per stage, not interpolated from histogram buckets; the response reports sampleWindow so the scope of the estimate is visible.\n\nAlso served at: /api/metrics/summary.",
+        "security": [],
+        "parameters": [
+          {
+            "name": "window",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "default": "1h",
+              "type": "string",
+              "enum": ["5m", "1h", "24h"]
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Latency and counter summary for the dashboard.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MetricsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "$ref": "#/components/responses/BadRequest"
+          },
+          "429": {
+            "$ref": "#/components/responses/TooManyRequests"
+          }
+        }
+      }
+    }
+  }
+}
