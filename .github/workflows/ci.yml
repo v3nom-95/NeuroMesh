@@ -113,7 +113,7 @@ jobs:
           done
           echo "Hermetic: no chain or IPFS secrets present."
       - name: Cache Solidity compiler downloads
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: ~/.cache/hardhat-nodejs
           key: ${{ runner.os }}-solc-${{ hashFiles('hardhat.config.js') }}
